@@ -80,7 +80,7 @@ const i2c_bus_t aht21_i2c_bus = {
     .I2C_SDA_PIN  = GPIO_PIN_9
 };
 // 2. 初始化i2c驱动接口结构体
-i2c_driver_interface_t i2c_driver_interface = {
+aht_i2c_driver_interface_t i2c_driver_interface = {
     .pf_i2c_init         = i2c_init_myown,
     .pf_i2c_deinit       = i2c_deinit_myown,
     .pf_i2c_start        = i2c_start_myown,

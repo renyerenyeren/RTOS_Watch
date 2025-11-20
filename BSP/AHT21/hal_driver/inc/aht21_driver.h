@@ -45,7 +45,7 @@ typedef struct
                                             uint8_t * const );
     aht21_status_t (*pf_critical_enter)   (void);   /* enter critical state.*/
     aht21_status_t (*pf_critical_exit)    (void);   /* exit  critical state.*/
-}i2c_driver_interface_t;
+}aht_i2c_driver_interface_t;
 
 /** 获取时基数     */
 typedef struct
@@ -65,7 +65,7 @@ typedef struct bsp_aht21_driver_struct bsp_aht21_driver_t ;
 typedef struct bsp_aht21_driver_struct
 {
     /**需要提供的接口*/
-    i2c_driver_interface_t *p_i2c_driver_interface;
+    aht_i2c_driver_interface_t *p_i2c_driver_interface;
     timebase_interface_t   *p_timebase_interface;
     yield_interface_t      *p_yield_interface;
 
@@ -73,7 +73,7 @@ typedef struct bsp_aht21_driver_struct
     /**对象实例化函数指针*/
     aht21_status_t (*pf_inst)(
       bsp_aht21_driver_t*     const p_aht21_instance,
-      i2c_driver_interface_t* const p_i2c_driver_interface,
+      aht_i2c_driver_interface_t* const p_i2c_driver_interface,
       timebase_interface_t*   const p_timebase_interface,
       yield_interface_t*      const p_yield_interface
     );
@@ -104,7 +104,7 @@ typedef struct bsp_aht21_driver_struct
 //******************************** 函数声明 ***********************************//
 aht21_status_t aht21_inst(
     bsp_aht21_driver_t*     const p_bsp_aht21_inst,
-    i2c_driver_interface_t* const p_i2c_driver_inst,
+    aht_i2c_driver_interface_t* const p_i2c_driver_inst,
     timebase_interface_t*   const p_timebase_inst,
     yield_interface_t*      const p_yield_inst);
 //******************************** 函数声明 ***********************************//

@@ -332,7 +332,7 @@ static aht21_status_t aht21_weakup(bsp_aht21_driver_t * const p_aht21)
  */
 aht21_status_t aht21_inst(
                     bsp_aht21_driver_t*     const p_bsp_aht21_inst     ,
-                    i2c_driver_interface_t* const p_i2c_driver_inst,
+                    aht_i2c_driver_interface_t* const p_i2c_driver_inst,
                     timebase_interface_t*   const p_timebase_inst  ,
                     yield_interface_t*      const p_yield_inst     )
 {

@@ -64,7 +64,7 @@ typedef struct
 typedef struct
 {
     /* 传递给驱动层的接口 */
-    i2c_driver_interface_t *i2c_driver_interface;
+    aht_i2c_driver_interface_t *i2c_driver_interface;
     timebase_interface_t   *timebase_interface  ;
     yield_interface_t      *yield_interface     ;
 
@@ -82,7 +82,7 @@ typedef struct
 typedef struct
 {
     /* 传递给驱动层的接口 */
-    i2c_driver_interface_t *i2c_driver_interface;
+    aht_i2c_driver_interface_t *i2c_driver_interface;
     timebase_interface_t   *timebase_interface  ;
     yield_interface_t      *yield_interface     ;
 
