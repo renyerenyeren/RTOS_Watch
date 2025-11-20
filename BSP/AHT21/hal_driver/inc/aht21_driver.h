@@ -21,7 +21,7 @@ typedef enum
     AHT21_OK                = 0,         //* 操作成功完成
     AHT21_ERROR             = 1,         //* 运行时错误，无匹配情况
     AHT21_ERRORTIMEOUT      = 2,         //* 操作失败，超市
-    AHT21_ERRORRESOURCE       = 3,         //* 资源不可用
+    AHT21_ERRORRESOURCE     = 3,         //* 资源不可用
     AHT21_ERRORPARAMETER    = 4,         //* 参数错误
     AHT21_ERRORMEMORY       = 5,         //* 内存不足
     AHT21_ERRORISR          = 6,         //* 中断服务程序（ISR）上下文不允许
