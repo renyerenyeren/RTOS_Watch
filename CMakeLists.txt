@@ -53,6 +53,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         ./BSP/IIC_BUS/i2c_bus.c
         ./BSP/AHT21/hal_driver/src/aht21_driver.c
         ./BSP/AHT21/handler/src/temp_humi_handler.c
+        ./BSP/MPU6050/hal_driver/src/mpu6050_driver.c
         ./System/src/aht21_system_adaption.c
 )
 
