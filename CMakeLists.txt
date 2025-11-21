@@ -63,6 +63,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ./BSP/IIC_BUS
         ./BSP/AHT21/hal_driver/inc
         ./BSP/AHT21/handler/inc
+        ./BSP/MPU6050/hal_driver/inc
         ./System/inc
 )
 

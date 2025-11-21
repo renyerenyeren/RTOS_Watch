@@ -11,7 +11,7 @@
 //******************************** Includes *********************************//
 //---------------------------------------------------------------------------//
 //******************************** Defines **********************************//
-
+#define OS_SUPPORTING 1            /* OS supporting                          */
 //******************************** Defines **********************************//
 //---------------------------------------------------------------------------//
 //******************************** Typedefs *********************************//
@@ -67,14 +67,14 @@ typedef struct
     void* hi2c;       /* hi2c：指向 I2C_HandleTypeDef 结构体的指针 */
     mpu6050_status_t (*pf_i2c_init)        (void*); /* IIC init    interface */
     mpu6050_status_t (*pf_i2c_deinit)      (void*); /* IIC deinit  interface */
-    mpu6050_status_t (*pf_i2c_men_write)   (void* hi2c,
+    mpu6050_status_t (*pf_i2c_mem_write)   (void* hi2c,
                                             uint16_t dst_address,
                                             uint16_t mem_addr,
                                             uint16_t mem_size,
                                             uint8_t* p_data,
                                             uint16_t size,
                                             uint32_t timeout);
-    mpu6050_status_t (*pf_i2c_men_read)    (void* hi2c,
+    mpu6050_status_t (*pf_i2c_mem_read)    (void* hi2c,
                                              uint16_t dst_address,
                                              uint16_t mem_addr,
                                              uint16_t mem_size,
@@ -82,7 +82,7 @@ typedef struct
                                              uint16_t size,
                                              uint32_t timeout);
     //* 使用DMA异步读取I2C设备寄存器的数据
-    mpu6050_status_t (*pf_i2c_men_read_dma)(void* hi2c,
+    mpu6050_status_t (*pf_i2c_mem_read_dma)(void* hi2c,
                                             uint16_t dst_address,
                                             uint16_t mem_addr,
                                             uint16_t mem_size,
@@ -124,6 +124,7 @@ typedef struct
 }buffer_interface_t;
 
 /** From OS Layer :       OS_Delay    */
+#ifdef OS_SUPPORTING
 typedef struct
 {
     void (*pf_rtos_yield)(const uint32_t);/* OS No-Blocking delay  */
@@ -170,6 +171,7 @@ typedef struct
                                 uint32_t *pulNotificationValue,
                                 uint32_t timeout);
 }os_interface_t;
+#endif /* End of OS_SUPPORTING       */
 //**************************** Interface Structs ****************************//
 //---------------------------------------------------------------------------//
 //******************************** Classes **********************************//
@@ -183,6 +185,7 @@ typedef struct bsp_mpu6050_driver
     timebase_interface_t           *p_timebase_interface;
 
     /** os操作接口 */
+#ifdef OS_SUPPORTING
     buffer_interface_t *p_buffer_interface;
     yield_interface_t  *p_yield_interface;
     os_interface_t     *p_os_interface;
@@ -195,6 +198,7 @@ typedef struct bsp_mpu6050_driver
     /** 回调函数 */
     void (*pf_dma_completed_callback)(void);
     void (*pf_int_interrupt_callback)(void);
+#endif /* End of OS_SUPPORTING */
 
     /** MPU6050 传感器驱动的对外的接口 */
     /** 反初始化MPU6050传感器 */
@@ -255,15 +259,20 @@ typedef struct bsp_mpu6050_driver
 mpu6050_status_t bsp_mpu6050_driver_inst(
     bsp_mpu6050_driver_t       *p_mpu6050_driver,
     mpu_i2c_driver_interface_t *p_i2c_driver_interface,
+#ifdef OS_SUPPORTING
     yield_interface_t          *p_yield_interface,
     os_interface_t             *p_os_interfece,
+#endif /* End of OS_SUPPORTING */
     delay_interface_t          *p_delay_interface,
     timebase_interface_t       *p_timebase_interface,
     void (*callback_register)    (void (*callback)(void *, void *)),
-    void (*callback_register_dma)(void (*callback)(void *, void *)),
-    void *queue_handle,
+    void (*callback_register_dma)(void (*callback)(void *, void *))
+#ifdef OS_SUPPORTING
+    ,void *queue_handle,
     void *semaphore_handle,
-    void *notify_handle);
+    void *notify_handle
+#endif /* End of OS_SUPPORTING */
+                                 );
 uint32_t mpu6050_flag_read(void);
 void mpu6050_flag_set(uint8_t flag);
 //******************************** 函数声明 ***********************************//
