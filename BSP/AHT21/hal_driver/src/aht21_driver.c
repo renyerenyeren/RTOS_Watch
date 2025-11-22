@@ -15,9 +15,9 @@ if((EERO_NUM) != (NUM_EXPECT_VAL))                     \
 
 #ifdef  LOG_TAG
 #undef  LOG_TAG
-#define LOG_TAG       "aht21_driver_inst"
+#define LOG_TAG       "aht21_driver"
 #else // else of LOG_TAG
-#define LOG_TAG       "aht21_driver_inst"
+#define LOG_TAG       "aht21_driver"
 #endif // end of LOG_TAG
 
 #define IS_INITED                  (1 == inited)
