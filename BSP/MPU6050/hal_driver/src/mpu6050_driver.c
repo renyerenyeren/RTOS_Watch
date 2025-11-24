@@ -72,7 +72,7 @@ static uint8_t g_is_init_flag = MPU6050_NOT_INIT;
 
 /**
  * @brief 反初始化MPU驱动
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @return 执行状态
  */
 static mpu6050_status_t mpu_driver_deinit(bsp_mpu6050_driver_t *p_mpu6050)
@@ -89,7 +89,7 @@ static mpu6050_status_t mpu_driver_deinit(bsp_mpu6050_driver_t *p_mpu6050)
 
 /**
  * @brief 使MPU进入睡眠模式
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @return 执行状态
  */
 static mpu6050_status_t mpu_driver_sleep(bsp_mpu6050_driver_t *p_mpu6050)
@@ -100,7 +100,7 @@ static mpu6050_status_t mpu_driver_sleep(bsp_mpu6050_driver_t *p_mpu6050)
 
 /**
  * @brief 唤醒MPU6050
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @return 执行状态
  */
 static mpu6050_status_t mpu_driver_wakeup(bsp_mpu6050_driver_t *p_mpu6050)
@@ -119,7 +119,7 @@ static mpu6050_status_t mpu_driver_wakeup(bsp_mpu6050_driver_t *p_mpu6050)
 
 /**
  * @brief 设置陀螺仪满量程范围
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] fsr 陀螺仪满量程设置值
  *          | fsr |   量程范围   | 灵敏度 |
  *             0     正负250度/秒    131
@@ -154,7 +154,7 @@ static mpu6050_status_t mpu_driver_set_gyro_fsr(bsp_mpu6050_driver_t *p_mpu6050,
 
 /**
  * @brief 设置加速度计满量程范围
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] fsr 加速度计满量程设置值
  *                  | fsr|  量程  | 灵敏度 |
  *                  |  0 |正负 2g | 16384 |
@@ -189,7 +189,7 @@ static mpu6050_status_t mpu_driver_set_accel_fsr(bsp_mpu6050_driver_t *p_mpu6050
 
 /**
  * @brief 设置低通滤波器
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 低通滤波器设置值
  *|     |      陀螺仪       |      加速度计     |         |
  *|data |带宽 (Hz)|延迟 (ms)|带宽 (Hz)|延迟 (ms)|陀螺仪输出率|
@@ -221,7 +221,7 @@ static mpu6050_status_t mpu_driver_set_lpf(bsp_mpu6050_driver_t *p_mpu6050,
 
 /**
  * @brief 设置采样率，准确来说是SMPLRT_DIV
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 采样率分频器[SMPLRT_DIV]
  *            采样率 = 陀螺仪输出速率/（1+SMPLRT_DIV）
  * 当DLPF禁用时（DLPF_CFG=0或7），陀螺仪输出速率=8kHz；当DLPF启用时，陀螺仪输出率=1kHz
@@ -244,7 +244,7 @@ static mpu6050_status_t mpu_driver_set_rate(bsp_mpu6050_driver_t *p_mpu6050,
 
 /**
  * @brief 设置中断使能
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 中断使能设置值
  *|data |    中断名称
  *|BIT0	| 控制数据准备中断
@@ -275,7 +275,7 @@ static mpu6050_status_t mpu_driver_set_interrupt_enable(
 
 /**
  * @brief 设置运动检测阈值
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 运动检测阈值设置值
  * @return 执行状态
  */
@@ -297,7 +297,7 @@ static mpu6050_status_t mpu_driver_set_motion_threshold(
 
 /**
  * @brief 设置中断电平
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 中断电平设置值
  * @return 执行状态
  */
@@ -319,7 +319,7 @@ static mpu6050_status_t mpu_driver_set_INT_level(
 
 /**
  * @brief 设置用户控制寄存器
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 用户控制设置值
  * |---------------------------------------------------------------|
  * |  BIT7     |    BIT6       |   BIT5        |    BIT4    | BIT3 |
@@ -351,7 +351,7 @@ static mpu6050_status_t mpu_driver_set_user_ctrl(
 
 /**
  * @brief 设置电源管理1寄存器
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 电源管理1设置值
  *|------------------------------------ |
  *|BIT7：置位后所有传感器恢复默认值           |
@@ -392,7 +392,7 @@ static mpu6050_status_t mpu_driver_set_pwr_mgmt1_reg(
 
 /**
  * @brief 设置电源管理2寄存器
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data 电源管理2设置值
  *          置位为休眠，清零为正常工作，
  * BIT7：x轴陀螺仪休眠   BIT4：x轴加速度计休眠
@@ -424,7 +424,7 @@ static mpu6050_status_t mpu_driver_set_pwr_mgmt2_reg(
 
 /**
  * @brief 设置FIFO使能寄存器
- * @param[in,out] p_mpuxxx MPU驱动结构体指针
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
  * @param[in] data FIFO使能设置值
  * Bit7	Bit6	Bit5	Bit4	Bit3	Bit2	Bit1	Bit0
  * 温度	陀螺仪X 陀螺仪Y  陀螺仪Z  加速度计  从设备 2  从设备1 从设备 0
@@ -448,7 +448,7 @@ static mpu6050_status_t mpu_driver_set_fifo_en_reg(
 
 /**
  * @brief 获取温度数据
- * @param[in] p_mpuxxx MPU驱动结构体指针
+ * @param[in] p_mpu6050 MPU驱动结构体指针
  * @param[out] p_data 温度数据输出指针
  * @return 执行状态
  */
@@ -475,7 +475,7 @@ static mpu6050_status_t mpu_driver_get_temperature(
 
 /**
  * @brief 获取加速度计数据
- * @param[in] p_mpuxxx MPU驱动结构体指针
+ * @param[in] p_mpu6050 MPU驱动结构体指针
  * @param[out] p_data 加速度计数据输出指针
  * @return 执行状态
  */
@@ -505,7 +505,7 @@ static mpu6050_status_t mpu_driver_get_accel(bsp_mpu6050_driver_t *p_mpu6050,
 
 /**
  * @brief 获取陀螺仪数据
- * @param[in] p_mpuxxx MPU驱动结构体指针
+ * @param[in] p_mpu6050 MPU驱动结构体指针
  * @param[out] p_data 陀螺仪数据输出指针
  * @return 执行状态
  */
@@ -535,7 +535,7 @@ static mpu6050_status_t mpu_driver_get_gyro(bsp_mpu6050_driver_t *p_mpu6050,
 
 /**
  * @brief 获取所有传感器数据
- * @param[in] p_mpuxxx MPU驱动结构体指针
+ * @param[in] p_mpu6050 MPU驱动结构体指针
  * @param[out] p_data 所有传感器数据输出指针
  * @return 执行状态
  */
@@ -577,7 +577,7 @@ static mpu6050_status_t mpu_driver_get_all_data(bsp_mpu6050_driver_t *p_mpu6050,
 
 /**
  * @brief 获取中断状态寄存器值
- * @param[in] p_mpuxxx MPU驱动结构体指针
+ * @param[in] p_mpu6050 MPU驱动结构体指针
  * @param[out] p_data 中断状态寄存器值输出指针
  * @return 执行状态
  */
@@ -594,11 +594,12 @@ static mpu6050_status_t mpu_driver_get_interrupt_status_reg(
         LOG_ERROR("mpu6050 get interrupt_status reg error");
         return ret;
     }
+    return ret;
 }
 
 /**
  * @brief 读取FIFO数据包
- * @param[in] p_mpuxxx MPU驱动结构体指针
+ * @param[in] p_mpu6050 MPU驱动结构体指针
  * @param[out] p_data FIFO数据输出指针
  * @return 执行状态
  */
@@ -656,7 +657,7 @@ static mpu6050_status_t mpu_driver_read_fifo_packet(
 
 /**
  * @brief 在ISR中读取FIFO数据
- * @param[in] p_mpuxxx MPU驱动结构体指针
+ * @param[in] p_mpu6050 MPU驱动结构体指针
  * @param[out] p_data FIFO数据输出指针
  * @return 执行状态
  */
@@ -676,6 +677,284 @@ static mpu6050_status_t mpu_driver_read_fifo_isr_occur(
     return ret;
 }
 
+/**
+ * @brief 运动中断触发初始化
+ * @param[in] p_mpu6050 MPU驱动结构体指针
+ * @return 执行状态
+ */
+static mpu6050_status_t mpu_motion_init(bsp_mpu6050_driver_t* p_mpu6050)
+{
+    mpu6050_status_t ret = MPU6050_OK;
+    //* 开启运动检测
+    ret = mpu_driver_set_motion_threshold(p_mpu6050, 0x10);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("motion threshold set error");
+        return ret;
+    }
+    //* 设置中断电平
+    ret = mpu_driver_set_INT_level(p_mpu6050,     //* 此处详情应查询数据手册
+                              ( INT_RD_CLEAR_BIT(1) | INT_LEVEL_BIT(1) ));
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("INT level set error");
+        return ret;
+    }
+    //* 使能运动检测中断
+    ret = mpu_driver_set_interrupt_enable(p_mpu6050, MOT_EN_BIT(1));
+    if (MPU6050_OK!= ret)
+    {
+        LOG_ERROR("INT enable error");
+        return ret;
+    }
+    return ret;
+}
+
+/**
+ * @brief FIFO初始化
+ * @param[in] p_mpu6050 MPU驱动结构体指针
+ * @return 执行状态
+ */
+static mpu6050_status_t mpu_fifo_init(bsp_mpu6050_driver_t* p_mpu6050)
+{
+    mpu6050_status_t ret = MPU6050_OK;
+
+    //* 复位FIFO
+    ret = mpu_driver_set_user_ctrl(p_mpu6050, FIFO_RESET_BIT(1));
+    if (MPU6050_OK!=ret)
+    {
+        LOG_ERROR("writer user ctrl error");
+        return ret;
+    }
+
+    //* 等待复位
+#ifdef OS_SUPPORTING
+    p_mpu6050->p_yield_interface->pf_rtos_yield(10);
+#else
+    p_mpu6050->p_delay_interface->pf_delay_ms(10);
+#endif
+
+    //* 启用加速度计和陀螺仪的FIFO
+    ret = mpu_driver_set_fifo_en_reg(p_mpu6050, XG_FIFO_EN_BIT(1)|
+                                                 YG_FIFO_EN_BIT(1)    |
+                                                 ZG_FIFO_EN_BIT(1)    |
+                                                 ACCEL_FIFO_EN_BIT(1));
+    //* 此处详情应查询数据手册
+    if (MPU6050_OK!=ret)
+    {
+        LOG_ERROR("mpu_write error");
+        return ret;
+    }
+    //* 设置中断电平
+    ret = mpu_driver_set_INT_level(p_mpu6050,    //* 此处详情应查询数据手册
+                                     INT_RD_CLEAR_BIT(1) | INT_LEVEL_BIT(1));
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set INT level error");
+        return ret;
+    }
+    //* 使能 FIFO 溢出中断
+    ret = mpu_driver_set_interrupt_enable(p_mpu6050,FIFO_OVERFLOW_EN_BIT(1)); //0b0001 0000
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set interrupt enable error");
+        return ret;
+    }
+    return ret;
+}
+
+/**
+ * @brief 初始化MPU硬件
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
+ * @return 执行状态
+ */
+static mpu6050_status_t mpu_init(bsp_mpu6050_driver_t* p_mpu6050)
+{
+    mpu6050_status_t ret = MPU6050_OK;
+    uint8_t id = 0;
+
+    //* 延时初始化
+#ifndef OS_SUPPORTING
+    p_mpu6050->p_delay_interface->pf_delay_init();
+#endif
+    //* i2c总线初始化
+    p_mpu6050->p_i2c_driver_interface->pf_i2c_init(NULL);
+    //* 复位内部寄存器复位到他们的默认值
+    ret = mpu_driver_set_pwr_mgmt1_reg(p_mpu6050, DEVICE_RESET_BIT(1));
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set power reset error");
+        return ret;
+    }
+
+#ifdef OS_SUPPORTING
+    p_mpu6050->p_yield_interface->pf_rtos_yield(100);
+#else
+    p_mpuxxx->p_delay_interface->pf_delay_ms(100);
+#endif
+
+    //* 唤醒mpu6050
+    ret = mpu_driver_wakeup(p_mpu6050);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set power reset error");
+        return ret;
+    }
+
+    //* 设置陀螺仪和加速度计的 Full Scale
+    ret = mpu_driver_set_gyro_fsr(p_mpu6050, 3);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set gyro fsr error");
+        return ret;
+    }
+    ret = mpu_driver_set_accel_fsr(p_mpu6050, 3);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set accel fsr error");
+        return ret;
+    }
+
+    //* 设置采样率
+    ret = mpu_driver_set_rate(p_mpu6050,0x19);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set rate error");
+        return ret;
+    }
+    //* 设置低通滤波和陀螺仪输出率
+    ret = mpu_driver_set_lpf(p_mpu6050,0x04);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set lpf error");
+        return ret;
+    }
+
+    //* 设置控制数据准备中断
+    ret = mpu_driver_set_interrupt_enable(p_mpu6050,DATA_RDY_EN_BIT(1));
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set interrupt is ng");
+        return ret;
+    }
+
+    //* 检测从机地址是否正确
+    ret = MPU6050_READ_REG(p_mpu6050,MPU_DEVICE_ID_REG,&id,1);
+    if (MPU6050_OK!=ret || id !=MPU_ID)
+    {
+        LOG_ERROR("device ID error");
+        return ret;
+    }
+
+    //* 将时钟源设置为锁相环（PLL），以 X 轴陀螺仪为参考源
+    ret = mpu_driver_set_pwr_mgmt1_reg(p_mpu6050, CLKSEL_BIT(1));
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set pwr1 error");
+        return ret;
+    }
+    //* 禁用陀螺仪待机模式
+    ret = mpu_driver_set_pwr_mgmt2_reg(p_mpu6050,
+                                        LP_WAKE_CTRL_BIT(0) |
+                                        STBY_XA_BIT(0)      |
+                                        STBY_YA_BIT(0)      |
+                                        STBY_ZA_BIT(0)      |
+                                        STBY_XG_BIT(0)      |
+                                        STBY_YG_BIT(0)      |
+                                        STBY_ZG_BIT(0) );
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("set pwr2 error");
+        return ret;
+    }
+    return ret;
+}
+
+/**
+ * @brief 初始化MPU驱动
+ * @param[in,out] p_mpu6050 MPU驱动结构体指针
+ * @return 执行状态
+ */
+static mpu6050_status_t bsp_mpu6050_driver_init(bsp_mpu6050_driver_t* p_mpu6050)
+{
+    mpu6050_status_t ret = MPU6050_OK;
+    if (MPU6050_INIT == g_is_init_flag)
+    {
+        LOG_ERROR("mpu6050 is inited,not need init");
+        return MPU6050_ERRORPARAMETER;
+    }
+    LOG_DEBUG("mpu6050 driver init is start");
+    ret = mpu_init(p_mpu6050);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("mpu6050 init error");
+        return ret;
+    }
+    ret = mpu_fifo_init(p_mpu6050);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("mpu6050 fifo init error");
+        return ret;
+    }
+    return ret;
+}
+
+/**TODO
+ * @brief mpu6050 INT interrupt callback
+ *
+ * @param[in] p_mpu6050 指向 MPU6050 驱动结构体的指针
+ * @param[out] p_data   数据输出指针
+ * @return void
+*/
+void int_interrupt_callback(void *p_mpu6050, void *p_data)
+{
+    LOG_DEBUG("=====int_interrupt_callback start=====");
+    mpu6050_status_t ret = MPU6050_OK;
+    bsp_mpu6050_driver_t *p_mpu_driver = NULL;
+
+    NULL_CHECK(p_mpu6050, int_interrupt_null);
+    p_mpu_driver = (bsp_mpu6050_driver_t*)p_mpu6050;
+
+    //* 若不支持操作系统，则读取所有数据
+#ifndef OS_SUPPORTING
+    ret = mpu_driver_get_all_data(p_mpu_driver, (mpu6050_data_t*)p_data);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("int_interrupt_callback mpu6050_get_all_data error");
+        LOG_ERROR("ret = %d", ret);
+    }
+#else
+#endif/* End of OS_SUPPORTING */
+
+int_interrupt_null:
+    {
+        LOG_ERROR("int_interrupt_callback parameter error");
+    }
+}
+
+/**TODO
+ * @brief mpu6050 dma interrupt callback
+ *
+ * @param[in] p_mpu6050:指向 MPU6050 驱动结构体的指针
+ * @param[out] p_data   数据输出指针
+ * @return void
+*/
+void dma_interrupt_callback(void *p_mpu6050, void *p_data)
+{
+
+}
+
+/**
+ * @brief MPU6050 驱动实例
+ * @param [in] p_mpu6050_driver: 指向 MPU6050 驱动结构体的指针
+ * @param [in] p_i2c_driver_interface: 指向 I2C 驱动接口的指针
+ * @param [in] p_yield_interface: 指向让步接口的指针
+ * @param [in] p_os_interfece: 指向操作系统接口的指针
+ * @param [in] p_timebase_interface: 指向时基接口的指针
+ * @param [in] callback_register: 回调函数指针
+ * @param [in] callback_register_dma: DMA 回调函数指针
+ * @return 执行状态
+ */
 mpu6050_status_t bsp_mpu6050_driver_inst(
     bsp_mpu6050_driver_t       *p_mpu6050_driver,
     mpu_i2c_driver_interface_t *p_i2c_driver_interface,
