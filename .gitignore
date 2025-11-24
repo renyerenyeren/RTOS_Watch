@@ -1,3 +1,10 @@
 build
 mx.scratch
 !.settings
+/.clangd
+/.settings/bundles.store.json
+/.settings/bundles-lock.store.json
+/.vscode/c_cpp_properties.json
+/.settings/ide.store.json
+/.vscode/settings.json
+/.idea/vcs.xml
