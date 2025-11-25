@@ -57,6 +57,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         ./System/src/aht21_system_adaption.c
         ./BSP/MPU6050/hal_driver/src/mpu6050_driver.c
         ./BSP/MPU6050/hal_driver/src/circular_buffer.c
+        ./BSP/MPU6050/handler/src/imu_handler.c
 )
 
 # Add include paths
@@ -66,6 +67,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ./BSP/AHT21/hal_driver/inc
         ./BSP/AHT21/handler/inc
         ./BSP/MPU6050/hal_driver/inc
+        ./BSP/MPU6050/handler/inc
         ./System/inc
 )
 
