@@ -1061,7 +1061,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
         }
     #endif // end of binary semaphore test
     /*********************************************************/
-    #if 0 // 任务通知测试模式（当前禁用）- 依赖RTOS通知接口
+    #if 1 // 任务通知测试模式（当前启用）- 依赖RTOS通知接口
         ret = p_mpu_driver->p_os_interface->os_semaphore_signal_notify_isr(
                                     p_mpu_driver->notify_handle,
                                     1,
