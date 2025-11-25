@@ -75,7 +75,7 @@ null_ptr:
     }
 }
 
-/**todo:buffer已满
+/**
  * @brief 更新写入标志位，表示一个数据包已写入完成
  * @param buffer 指向循环缓冲区结构体的指针
  */
@@ -92,7 +92,7 @@ null_ptr:
     }
 }
 
-/**todo:buffer已满
+/**
  * @brief 更新读取标志位，表示一个数据包已读取完成
  * @param buffer 指向循环缓冲区结构体的指针
  */
