@@ -239,7 +239,7 @@
 //                 generate an interrupt.
 // DATA_RDY_EN     When set to 1, this bit enables the Data Ready interrupt, which occurs each
 //                 time a write operation to all of the sensor registers has been completed.
-#define COLOSE_ALL              (0X00)
+#define CLOSE_ALL              (0X00)
 #define DATA_RDY_EN_BIT(x)      (x << 0)
 #define I2C_MST_INT_EN_BIT(x)   (x << 3)
 #define FIFO_OVERFLOW_EN_BIT(x) (x << 4)

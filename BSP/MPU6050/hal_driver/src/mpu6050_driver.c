@@ -6,7 +6,10 @@
 
 #include "bsp_mpu6050_reg.h"
 #include "bsp_mpu6050_reg_bit.h"
+#include "circular_buffer.h"
 #include "elog.h"
+#include "FreeRTOS.h"
+#include "queue.h"
 //******************************** Includes *********************************//
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -66,6 +69,7 @@ goto tag;}                                             \
 static double g_gyro_scale = 131.0;   //* 陀螺仪的灵敏度
 static double g_accel_scale = 16384.0;//* 加速度计的灵敏度
 static uint8_t g_is_init_flag = MPU6050_NOT_INIT;
+static uint32_t g_is_dma_readed = 0;
 //******************************** Variables ********************************//
 //---------------------------------------------------------------------------//
 //******************************** Functions ********************************//
@@ -899,9 +903,11 @@ static mpu6050_status_t bsp_mpu6050_driver_init(bsp_mpu6050_driver_t* p_mpu6050)
     return ret;
 }
 
-/**TODO
+/**
  * @brief mpu6050 INT interrupt callback
- *
+ * 这是一个中断服务程序（ISR）的一部分，当MPUXXX传感器产生中断信号时，
+ * 系统会自动调用此函数。其核心任务是读取传感器数据。
+ * 根据系统是否支持操作系统（OS），采用两种不同的数据读取策略。
  * @param[in] p_mpu6050 指向 MPU6050 驱动结构体的指针
  * @param[out] p_data   数据输出指针
  * @return void
@@ -915,8 +921,9 @@ void int_interrupt_callback(void *p_mpu6050, void *p_data)
     NULL_CHECK(p_mpu6050, int_interrupt_null);
     p_mpu_driver = (bsp_mpu6050_driver_t*)p_mpu6050;
 
-    //* 若不支持操作系统，则读取所有数据
 #ifndef OS_SUPPORTING
+    // ================== 无操作系统（OS）环境下的处理逻辑 ==================
+    //* 若不支持操作系统，则读取所有数据
     ret = mpu_driver_get_all_data(p_mpu_driver, (mpu6050_data_t*)p_data);
     if (MPU6050_OK != ret)
     {
@@ -924,7 +931,69 @@ void int_interrupt_callback(void *p_mpu6050, void *p_data)
         LOG_ERROR("ret = %d", ret);
     }
 #else
+    // ================== 有操作系统（OS）环境下的处理逻辑 ==================
+    // 如果系统支持OS，则采用更高效的DMA方式读取数据，并与系统调度协同工作
+
+    // 1. 获取环形缓冲区的写入地址
+    uint8_t *wbuff = NULL;
+    uint8_t data = 0;
+    wbuff = circular_buffer.pf_get_wbuffer_addr(&circular_buffer);
+    LOG_DEBUG("int_interrupt_callback wbuff = %p", wbuff);
+
+    // 2. 关闭MPUXXX传感器的所有中断
+    //    在启动DMA传输前关闭中断，可以防止在数据读取过程中再次触发中断，
+    //    避免中断嵌套和数据处理混乱。中断将在DMA传输完成后重新开启。
+    ret = mpu_driver_set_interrupt_enable(p_mpu_driver, CLOSE_ALL);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("int_interrupt_callback write interrupt enable reg error");
+        LOG_ERROR("ret = %d", ret);
+    }
+
+    // 3. 读取中断状态寄存器
+    //    读取该寄存器可以确认中断的来源，对于此寄存器，读取操作本身会清除中断标志位。
+    ret = mpu_driver_get_interrupt_status_reg(p_mpu_driver, &data);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("int_interrupt_callback read inter reg data 11 error");
+        LOG_ERROR("ret = %d", ret);
+    }
+    // 打印第一次读取到的中断状态寄存器值，用于分析中断原因
+    LOG_DEBUG("int_interrupt_callback read inter reg data 11 = %#x", data);
+    // 再次读取中断状态寄存器
+    // 某些传感器需要读取两次才能确保中断标志位被正确清除，这是一个常见的硬件操作技巧
+    ret = mpu_driver_get_interrupt_status_reg(p_mpu_driver, &data);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("int_interrupt_callback read inter reg data 22 error");
+        LOG_ERROR("ret = %d", ret);
+    }
+    // 打印第二次读取到的中断状态寄存器值，确认中断标志位已清除
+    LOG_DEBUG("int_interrupt_callback read inter reg data 22 = %#x", data);
+
+    // 4. 获取时间戳
+    //    记录数据开始读取的时间，为后续的数据分析（如计算采样频率、数据同步）提供时间基准
+    uint32_t timestamp_start =
+                    p_mpu_driver->p_timebase_interface->pf_get_tick_count();
+    LOG_DEBUG("get timestamp start : %d", timestamp_start);
+
+    // 5. 使用DMA方式读取数据
+    //    DMA (Direct Memory Access) 可以在不占用CPU的情况下，直接在硬件设备和内存之间传输数据
+    //    这极大地提高了数据传输效率，尤其适合在中断中处理高频数据采样
+    ret = p_mpu_driver->p_i2c_driver_interface->pf_i2c_mem_read_dma(
+                                   p_mpu_driver->p_i2c_driver_interface->hi2c,
+                                   (MPU_ADDR << 1) | 1,
+                                   MPU_ACCEL_XOUTH_REG,
+                                   IIC_MEMADD_SIZE_8BIT,
+                                   wbuff,
+                                   MPU6050_DATA_PACKET_SIZE);
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("int_interrupt_callback read accel data error");
+        LOG_ERROR("ret = %d", ret);
+    }
 #endif/* End of OS_SUPPORTING */
+    LOG_DEBUG("=====int_interrupt_callback end=====");
 
 int_interrupt_null:
     {
@@ -934,14 +1003,93 @@ int_interrupt_null:
 
 /**TODO
  * @brief mpu6050 dma interrupt callback
- *
  * @param[in] p_mpu6050:指向 MPU6050 驱动结构体的指针
  * @param[out] p_data   数据输出指针
  * @return void
 */
 void dma_interrupt_callback(void *p_mpu6050, void *p_data)
 {
+    LOG_DEBUG("=====dma_interrupt_callback start=====");
+    mpu6050_status_t ret = MPU6050_OK;
+    bsp_mpu6050_driver_t *p_mpu_driver = NULL;
+    NULL_CHECK(p_mpu6050, dma_interrupt_null);
+    p_mpu_driver = (bsp_mpu6050_driver_t*)p_mpu6050;
 
+    //1. 记录DMA传输完成的时间戳（用于计算传输耗时或数据同步）
+    uint32_t timestamp_end =
+                    p_mpu_driver->p_timebase_interface->pf_get_tick_count();
+    LOG_DEBUG("get timestamp end : %d", timestamp_end);
+
+    //2. 重新使能传感器数据就绪中断
+    ret = mpu_driver_set_interrupt_enable(p_mpu6050, DATA_RDY_EN_BIT(1));
+    if (MPU6050_OK != ret)
+    {
+        LOG_ERROR("dma_interrupt_callback open interrupt error");
+        LOG_ERROR("ret = %d", ret);
+    }
+#ifdef OS_SUPPORTING
+    // 更新环形缓冲区写指针：标记当前DMA传输的数据已写入完成
+    // 使缓冲区的下一个槽位变为可用状态，供下一次DMA传输使用
+    circular_buffer.pf_data_writed(&circular_buffer);
+    /*********************************************************/
+    #if 0 // 队列通信测试模式（当前禁用）- 依赖RTOS队列接口
+        // 向应用层线程的消息队列发送通知（1表示数据就绪）
+        if (NULL == p_mpu_driver->queue_handle)
+        {
+            LOG_DEBUG("queue_handle is NULL");
+        }
+        uint8_t tx_data = 1;
+        ret = p_mpu_driver->p_os_interface->os_queue_put_isr(
+                                        p_mpu_driver->queue_handle,
+                                        &tx_data,
+                                        NULL);
+        if (MPU6050_OK != ret)
+        {
+            LOG_ERROR("dma_interrupt_callback put queue error");
+            LOG_ERROR("ret = %d", ret);
+        }
+    #endif // end of queue test
+    /*********************************************************/
+    #if 0 // 二进制信号量测试模式（当前禁用）- 依赖RTOS信号量接口
+        ret = p_mpu_driver->p_os_interface->os_semaphore_signal_binary_isr(
+                                        p_mpu_driver->semaphore_binary_handle,
+                                        NULL);
+        if (MPU6050_OK != ret)
+        {
+            LOG_ERROR("dma_interrupt_callback give semaphore error");
+            LOG_ERROR("ret = %d", ret);
+        }
+    #endif // end of binary semaphore test
+    /*********************************************************/
+    #if 0 // 任务通知测试模式（当前禁用）- 依赖RTOS通知接口
+        ret = p_mpu_driver->p_os_interface->os_semaphore_signal_notify_isr(
+                                    p_mpu_driver->notify_handle,
+                                    1,
+                                    eSetValueWithOverwrite,
+                                    NULL);
+        if (MPU6050_OK != ret)
+        {
+            LOG_ERROR("dma_interrupt_callback send notify error");
+            LOG_ERROR("ret = %d", ret);
+        }
+    #endif // end of notify test
+    /*********************************************************/
+    #if 0 // 全局变量通知模式（当前禁用）- 无OS依赖，OS环境下也可使用
+        // 设置全局变量为1，标记DMA传输完成（应用层线程轮询该变量）
+        g_is_dma_readed = 1;
+    #endif // end of global variable test
+#else
+    /*********************************************************/
+    #if 0 // 无OS环境：全局变量通知模式（单独启用，保持逻辑统一）
+        g_is_dma_readed = 1;
+    #endif // end of global variable test (no OS)
+#endif /* End of OS_SUPPORTING */
+    LOG_DEBUG("-----dma_interrupt_callback end-----");
+
+dma_interrupt_null:
+    {
+        LOG_ERROR("dma_interrupt_callback parameter error");
+    }
 }
 
 /**
@@ -999,6 +1147,16 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
                                                          mpu_driver_inst_null);
     /** 实例化i2c接口 */
     p_mpu6050_driver->p_i2c_driver_interface = p_i2c_driver_interface;
+    /**************************** 检查阻塞延时 ********************************/
+    NULL_CHECK(p_delay_interface->pf_delay_init,         mpu_driver_inst_null);
+    NULL_CHECK(p_delay_interface->pf_delay_us,           mpu_driver_inst_null);
+    NULL_CHECK(p_delay_interface->pf_delay_ms,           mpu_driver_inst_null);
+    /** 实例化阻塞延时接口 */
+    p_mpu6050_driver->p_delay_interface = p_delay_interface;
+    /*************************** 时基获取接口 *********************************/
+    NULL_CHECK(p_timebase_interface->pf_get_tick_count,  mpu_driver_inst_null);
+    /** 实例化获取时基接口 */
+    p_mpu6050_driver->p_timebase_interface = p_timebase_interface;
 #ifdef OS_SUPPORTING
     /*************************** 检查OS延时参数 *******************************/
     NULL_CHECK(p_yield_interface->pf_rtos_yield, mpu_driver_inst_null);
@@ -1029,16 +1187,6 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
     /** 实例化os操作接口接口 */
     p_mpu6050_driver->p_os_interface = p_os_interfece;
 #endif /* End of OS_SUPPORTING */
-    /**************************** 检查阻塞延时 ********************************/
-    NULL_CHECK(p_delay_interface->pf_delay_init,         mpu_driver_inst_null);
-    NULL_CHECK(p_delay_interface->pf_delay_us,           mpu_driver_inst_null);
-    NULL_CHECK(p_delay_interface->pf_delay_ms,           mpu_driver_inst_null);
-    /** 实例化阻塞延时接口 */
-    p_mpu6050_driver->p_delay_interface = p_delay_interface;
-    /*************************** 时基获取接口 *********************************/
-    NULL_CHECK(p_timebase_interface->pf_get_tick_count,  mpu_driver_inst_null);
-    /** 实例化获取时基接口 */
-    p_mpu6050_driver->p_timebase_interface = p_timebase_interface;
 
     /** 实例化对外提供的接口 */
     p_mpu6050_driver->pf_deinit =                             mpu_driver_deinit;

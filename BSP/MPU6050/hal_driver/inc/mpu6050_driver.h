@@ -87,8 +87,7 @@ typedef struct
                                             uint16_t mem_addr,
                                             uint16_t mem_size,
                                             uint8_t* p_data,
-                                            uint16_t size,
-                                            uint32_t timeout);
+                                            uint16_t size);
 }mpu_i2c_driver_interface_t;
 
 /** 硬件中断 */
