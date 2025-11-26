@@ -1107,7 +1107,7 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
     bsp_mpu6050_driver_t       *p_mpu6050_driver,
     mpu_i2c_driver_interface_t *p_i2c_driver_interface,
 #ifdef OS_SUPPORTING
-    yield_interface_t          *p_yield_interface,
+    mpu_yield_interface_t      *p_yield_interface,
     os_interface_t             *p_os_interfece,
 #endif /* End of OS_SUPPORTING */
     delay_interface_t          *p_delay_interface,

@@ -127,7 +127,7 @@ typedef struct
 typedef struct
 {
     void (*pf_rtos_yield)(const uint32_t);/* OS No-Blocking delay  */
-}yield_interface_t;
+}mpu_yield_interface_t;
 
 /** os操作接口 */
 typedef struct
@@ -185,9 +185,9 @@ typedef struct bsp_mpu6050_driver
 
     /** os操作接口 */
 #ifdef OS_SUPPORTING
-    buffer_interface_t *p_buffer_interface;
-    yield_interface_t  *p_yield_interface;
-    os_interface_t     *p_os_interface;
+    buffer_interface_t    *p_buffer_interface;
+    mpu_yield_interface_t *p_yield_interface;
+    os_interface_t        *p_os_interface;
 
     void *queue_handle;            /*  消息队列句柄  */
     void *semaphore_mutex_handle;  /*  互斥锁句柄   */
@@ -259,7 +259,7 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
     bsp_mpu6050_driver_t       *p_mpu6050_driver,
     mpu_i2c_driver_interface_t *p_i2c_driver_interface,
 #ifdef OS_SUPPORTING
-    yield_interface_t          *p_yield_interface,
+    mpu_yield_interface_t      *p_yield_interface,
     os_interface_t             *p_os_interfece,
 #endif /* End of OS_SUPPORTING */
     delay_interface_t          *p_delay_interface,
