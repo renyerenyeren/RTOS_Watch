@@ -99,20 +99,20 @@ typedef struct
     mpu6050_status_t (*pf_disable_interrupt)(void);
     mpu6050_status_t (*pf_enable_clock)     (void);
     mpu6050_status_t (*pf_disable_clock)    (void);
-}hardware_interrupt_interface_t;
+}mpu_hardware_interrupt_interface_t;
 
 typedef struct
 {
     void (*pf_delay_init)(void);             /* Delay init interface    */
     void (*pf_delay_us)  (const uint32_t us);/* Delay us interface      */
     void (*pf_delay_ms)  (const uint32_t ms);/* Delay ms interface      */
-}delay_interface_t;
+}mpu_delay_interface_t;
 
 /** Form Core Layer :    TimeBase     */
 typedef struct
 {
     uint32_t (*pf_get_tick_count) (void); /* Get tick count interface */
-}timebase_interface_t;
+}mpu_timebase_interface_t;
 
 /** 存储来自 mpu6050 驱动的数据 */
 typedef struct
@@ -120,7 +120,7 @@ typedef struct
     uint8_t *(*pf_buffer_init)     (uint8_t size);
     uint8_t *(*pf_get_rbuffer_addr)(void);
     uint8_t *(*pf_get_wbuffer_addr)(void);
-}buffer_interface_t;
+}mpu_buffer_interface_t;
 
 /** From OS Layer :       OS_Delay    */
 #ifdef OS_SUPPORTING
@@ -179,13 +179,13 @@ typedef struct bsp_mpu6050_driver
 {
     /** 底层需要的接口 */
     mpu_i2c_driver_interface_t     *p_i2c_driver_interface;
-    hardware_interrupt_interface_t *p_interrupt_interface;
-    delay_interface_t              *p_delay_interface;
-    timebase_interface_t           *p_timebase_interface;
+    mpu_hardware_interrupt_interface_t *p_interrupt_interface;
+    mpu_delay_interface_t              *p_delay_interface;
+    mpu_timebase_interface_t       *p_timebase_interface;
 
     /** os操作接口 */
 #ifdef OS_SUPPORTING
-    buffer_interface_t    *p_buffer_interface;
+    mpu_buffer_interface_t    *p_buffer_interface;
     mpu_yield_interface_t *p_yield_interface;
     os_interface_t        *p_os_interface;
 
@@ -262,8 +262,8 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
     mpu_yield_interface_t      *p_yield_interface,
     os_interface_t             *p_os_interfece,
 #endif /* End of OS_SUPPORTING */
-    delay_interface_t          *p_delay_interface,
-    timebase_interface_t       *p_timebase_interface,
+    mpu_delay_interface_t          *p_delay_interface,
+    mpu_timebase_interface_t   *p_timebase_interface,
     void (*callback_register)    (void (*callback)(void *, void *)),
     void (*callback_register_dma)(void (*callback)(void *, void *))
 #ifdef OS_SUPPORTING
