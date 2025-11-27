@@ -32,7 +32,7 @@ typedef struct circular_buffer
     uint8_t size;     // 缓冲区的“槽位数量”（每个槽位存储1帧14字节数据）
 }circular_buffer_t;
 
-extern circular_buffer_t circular_buffer;
+extern circular_buffer_t mpu_circular_buffer;
 //******************************** Typedefs *********************************//
 //---------------------------------------------------------------------------//
 //**************************** Interface Structs ****************************//

@@ -74,6 +74,15 @@ static uint32_t g_is_dma_readed = 0;
 //---------------------------------------------------------------------------//
 //******************************** Functions ********************************//
 
+inline uint32_t mpu6050_flag_read(void)
+{
+    return g_is_dma_readed;
+}
+inline void mpu6050_flag_set(uint8_t flag)
+{
+    g_is_dma_readed = flag;
+}
+
 /**
  * @brief 反初始化MPU驱动
  * @param[in,out] p_mpu6050 MPU驱动结构体指针
@@ -937,7 +946,7 @@ void int_interrupt_callback(void *p_mpu6050, void *p_data)
     // 1. 获取环形缓冲区的写入地址
     uint8_t *wbuff = NULL;
     uint8_t data = 0;
-    wbuff = circular_buffer.pf_get_wbuffer_addr(&circular_buffer);
+    wbuff = mpu_circular_buffer.pf_get_wbuffer_addr(&mpu_circular_buffer);
     LOG_DEBUG("int_interrupt_callback wbuff = %p", wbuff);
 
     // 2. 关闭MPUXXX传感器的所有中断
@@ -1030,7 +1039,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
 #ifdef OS_SUPPORTING
     // 更新环形缓冲区写指针：标记当前DMA传输的数据已写入完成
     // 使缓冲区的下一个槽位变为可用状态，供下一次DMA传输使用
-    circular_buffer.pf_data_writed(&circular_buffer);
+    mpu_circular_buffer.pf_data_writed(&mpu_circular_buffer);
     /*********************************************************/
     #if 0 // 队列通信测试模式（当前禁用）- 依赖RTOS队列接口
         // 向应用层线程的消息队列发送通知（1表示数据就绪）
@@ -1122,6 +1131,7 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
                                  )
 {
     mpu6050_status_t ret = MPU6050_OK;
+    LOG_DEBUG("===mpu6050_driver inst start===");
     /****************************** 检查参数 ********************************/
     NULL_CHECK(p_mpu6050_driver,       mpu_driver_inst_null);
     NULL_CHECK(p_i2c_driver_interface, mpu_driver_inst_null);

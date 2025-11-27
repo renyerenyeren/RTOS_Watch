@@ -178,16 +178,16 @@ typedef struct bsp_mpu6050_driver bsp_mpu6050_driver_t;
 typedef struct bsp_mpu6050_driver
 {
     /** 底层需要的接口 */
-    mpu_i2c_driver_interface_t     *p_i2c_driver_interface;
+    mpu_i2c_driver_interface_t         *p_i2c_driver_interface;
     mpu_hardware_interrupt_interface_t *p_interrupt_interface;
     mpu_delay_interface_t              *p_delay_interface;
-    mpu_timebase_interface_t       *p_timebase_interface;
+    mpu_timebase_interface_t           *p_timebase_interface;
 
     /** os操作接口 */
 #ifdef OS_SUPPORTING
-    mpu_buffer_interface_t    *p_buffer_interface;
-    mpu_yield_interface_t *p_yield_interface;
-    os_interface_t        *p_os_interface;
+    mpu_buffer_interface_t *p_buffer_interface;
+    mpu_yield_interface_t  *p_yield_interface;
+    os_interface_t         *p_os_interface;
 
     void *queue_handle;            /*  消息队列句柄  */
     void *semaphore_mutex_handle;  /*  互斥锁句柄   */
@@ -262,7 +262,7 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
     mpu_yield_interface_t      *p_yield_interface,
     os_interface_t             *p_os_interfece,
 #endif /* End of OS_SUPPORTING */
-    mpu_delay_interface_t          *p_delay_interface,
+    mpu_delay_interface_t      *p_delay_interface,
     mpu_timebase_interface_t   *p_timebase_interface,
     void (*callback_register)    (void (*callback)(void *, void *)),
     void (*callback_register_dma)(void (*callback)(void *, void *))
