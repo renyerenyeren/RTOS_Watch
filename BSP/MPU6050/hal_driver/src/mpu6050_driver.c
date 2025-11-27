@@ -1070,7 +1070,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
         }
     #endif // end of binary semaphore test
     /*********************************************************/
-    #if 1 // 任务通知测试模式（当前启用）- 依赖RTOS通知接口
+    #if 0 // 任务通知测试模式（当前启用）- 依赖RTOS通知接口
         ret = p_mpu_driver->p_os_interface->os_semaphore_signal_notify_isr(
                                     p_mpu_driver->notify_handle,
                                     1,
@@ -1083,7 +1083,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
         }
     #endif // end of notify test
     /*********************************************************/
-    #if 0 // 全局变量通知模式（当前禁用）- 无OS依赖，OS环境下也可使用
+    #if 1 // 全局变量通知模式（当前禁用）- 无OS依赖，OS环境下也可使用
         // 设置全局变量为1，标记DMA传输完成（应用层线程轮询该变量）
         g_is_dma_readed = 1;
     #endif // end of global variable test
