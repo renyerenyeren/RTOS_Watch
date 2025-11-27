@@ -1003,6 +1003,7 @@ void int_interrupt_callback(void *p_mpu6050, void *p_data)
     }
 #endif/* End of OS_SUPPORTING */
     LOG_DEBUG("=====int_interrupt_callback end=====");
+    return;
 
 int_interrupt_null:
     {
