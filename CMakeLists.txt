@@ -41,6 +41,17 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
+# ------------------------------
+# 新增：引入 BSP 模块
+# ------------------------------
+add_subdirectory(BSP)
+# ------------------------------
+# 新增：引入 System 模块
+# ------------------------------
+add_subdirectory(System)
+# ------------------------------
+# 新增：引入 Debug 模块
+# ------------------------------
 add_subdirectory(Debug)
 
 # Link directories setup
@@ -51,24 +62,13 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-        ./BSP/IIC_BUS/i2c_bus.c
-        ./BSP/AHT21/hal_driver/src/aht21_driver.c
-        ./BSP/AHT21/handler/src/temp_humi_handler.c
-        ./System/src/aht21_system_adaption.c
-        ./BSP/MPU6050/hal_driver/src/mpu6050_driver.c
-        ./BSP/MPU6050/hal_driver/src/circular_buffer.c
-        ./BSP/MPU6050/handler/src/imu_handler.c
+        ./task/unpack/unpack_task.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-        ./BSP/IIC_BUS
-        ./BSP/AHT21/hal_driver/inc
-        ./BSP/AHT21/handler/inc
-        ./BSP/MPU6050/hal_driver/inc
-        ./BSP/MPU6050/handler/inc
-        ./System/inc
+        ./task/unpack
 )
 
 # Add project symbols (macros)
@@ -82,5 +82,16 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 
     # Add user defined libraries
+        # ------------------------------
+        # 新增：链接 BSP 库
+        # ------------------------------
+        bsp
+        # ------------------------------
+        # 新增：链接 System 库
+        # ------------------------------
+        system_adaption
+        # ------------------------------
+        # 新增：链接 user_debug 库
+        # ------------------------------
         user_debug
 )
