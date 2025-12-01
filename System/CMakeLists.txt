@@ -6,6 +6,7 @@ add_library(system_adaption STATIC)
 # 添加 System_adaption 模块的源文件
 target_sources(system_adaption PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/aht21_system_adaption.c  # 源文件路径
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/imu_system_adaption.c
 )
 
 # 暴露头文件路径（关键：对外公开 inc 目录，其他模块可引用）
