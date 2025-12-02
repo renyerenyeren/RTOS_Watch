@@ -55,6 +55,7 @@ typedef struct
 mpu6050_status_t imu_handler_inst(bsp_imu_handler_t* pHandler,
                             imu_handler_input_api_t* pInput_api);
 void imu_handler_thread(void* argument);
+mpu6050_status_t imu_unpack_data(mpu6050_data_t* mpu6050_data);
 //******************************** 函数声明 ***********************************//
 
 #endif //RTOS_PROJECT_IMU_HANDLER_H

@@ -28,7 +28,7 @@
 #include "aht21_system_adaption.h"
 #include "temp_humi_handler.h"
 #include "elog.h"
-#include "user_debug.h"
+#include "log_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,12 +113,12 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  BaseType_t ret = xTaskCreate(demo_task, "demo_task",
-                    128*6, NULL, 2, &g_demo_task_handler);
-  ERROR_CHECK(ret, pdPASS, "create demo_task failed");
-  ret = xTaskCreate(log_task, "log_task",
-                  128*6, NULL, 1, &g_log_task_handler);
-  ERROR_CHECK(ret, pdPASS, "create log_task failed");
+  // BaseType_t ret = xTaskCreate(demo_task, "demo_task",
+  //                   128*6, NULL, 2, &g_demo_task_handler);
+  // ERROR_CHECK(ret, pdPASS, "create demo_task failed");
+  // ret = xTaskCreate(log_task, "log_task",
+  //                 128*6, NULL, 1, &g_log_task_handler);
+  // ERROR_CHECK(ret, pdPASS, "create log_task failed");
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -170,13 +170,6 @@ void demo_task(void *argument)
   }
 }
 
-void log_task(void *argument)
-{
-  user_debug_init();
-  for (;;)
-  {
-    elog_flush();
-  }
-}
+
 /* USER CODE END Application */
 

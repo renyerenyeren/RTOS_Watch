@@ -55,6 +55,25 @@ void unpack_task(void* argument)
     LOG_INFO("unpack_task start");
     mpu6050_status_t ret = MPU6050_OK;
     uint8_t data = 0;
+    int16_t temp = 0;
+    mpu6050_data_t mpu6050_data;
 
+    for (;;)
+    {
+        ret = imu_unpack_data(&mpu6050_data);
+        ERROR_CHECK(ret, MPU6050_OK, "unpack get data error", error);
 
+        LOG_INFO("UnpackThread temp=%f", mpu6050_data.temperature);
+        LOG_INFO("UnpackThread ax=%f", mpu6050_data.ax);
+        LOG_INFO("UnpackThread ay=%f", mpu6050_data.ay);
+        LOG_INFO("UnpackThread az=%f", mpu6050_data.az);
+        LOG_INFO("UnpackThread gx=%f", mpu6050_data.gx);
+        LOG_INFO("UnpackThread gy=%f", mpu6050_data.gy);
+        LOG_INFO("UnpackThread gz=%f", mpu6050_data.gz);
+
+        error:
+        {
+            return;
+        }
+    }
 }

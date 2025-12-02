@@ -65,12 +65,14 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
         ./task/unpack/unpack_task.c
+        ./task/log/log_task.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
         ./task/unpack
+        ./task/log
 )
 
 # Add project symbols (macros)

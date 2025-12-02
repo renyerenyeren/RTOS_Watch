@@ -81,7 +81,7 @@ mpu6050_status_t os_semaphore_wait_notify_myown(uint32_t ulBitsToClearOnEntry,
 //******************************** Variables ********************************//
 // 1. 初始化i2c驱动接口结构体
 static mpu_i2c_driver_interface_t i2c_driver_interface = {
-    .hi2c = &hi2c1,
+    // .hi2c = &hi2c1,
     .pf_i2c_init = i2c_init_myown,
     .pf_i2c_deinit = i2c_deinit_myown,
     .pf_i2c_mem_write = i2c_mem_write_myown,

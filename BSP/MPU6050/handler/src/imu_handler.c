@@ -71,7 +71,13 @@ void register_callback_dma(void (*callback)(void*,void*))
     pf_DMA_interrupt_callback = callback;
 }
 
-
+/**
+ * @brief 解包来自MPU6050的数据
+ * 该函数从解包队列中获取数据，并根据MPU6050数据手册对原始数据进行解析，
+ * 包括加速度计、温度传感器和陀螺仪的数据，并将其转换为物理单位。
+ * @param[out] mpu6050_data 指向存储解包后数据的结构体指针
+ * @return 执行状态
+ */
 mpu6050_status_t imu_unpack_data(mpu6050_data_t* mpu6050_data)
 {
     /****************************** 检查参数 ********************************/
