@@ -48,6 +48,10 @@ add_subdirectory(BSP)
 # ------------------------------
 add_subdirectory(System)
 # ------------------------------
+# 新增：引入 user_lib 模块
+# ------------------------------
+add_subdirectory(user_lib)
+# ------------------------------
 # 新增：引入 Debug 模块
 # ------------------------------
 add_subdirectory(Debug)
@@ -92,4 +96,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         # 新增：链接 user_debug 库
         # ------------------------------
         user_debug
+        # ------------------------------
+        # 新增：链接 user_lib 库
+        # ------------------------------
+        user_lib
 )

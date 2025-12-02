@@ -1021,6 +1021,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
 {
     LOG_DEBUG("=====dma_interrupt_callback start=====");
     mpu6050_status_t ret = MPU6050_OK;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     bsp_mpu6050_driver_t *p_mpu_driver = NULL;
     NULL_CHECK(p_mpu6050, dma_interrupt_null);
     p_mpu_driver = (bsp_mpu6050_driver_t*)p_mpu6050;
@@ -1042,7 +1043,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
     // 使缓冲区的下一个槽位变为可用状态，供下一次DMA传输使用
     mpu_circular_buffer.pf_data_writed(&mpu_circular_buffer);
     /*********************************************************/
-    #if 0 // 队列通信测试模式（当前禁用）- 依赖RTOS队列接口
+    #if 1 // 队列通信测试模式（当前禁用）- 依赖RTOS队列接口
         // 向应用层线程的消息队列发送通知（1表示数据就绪）
         if (NULL == p_mpu_driver->queue_handle)
         {
@@ -1052,12 +1053,15 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
         ret = p_mpu_driver->p_os_interface->os_queue_put_isr(
                                         p_mpu_driver->queue_handle,
                                         &tx_data,
-                                        NULL);
+                                        &xHigherPriorityTaskWoken);
         if (MPU6050_OK != ret)
         {
             LOG_ERROR("dma_interrupt_callback put queue error");
             LOG_ERROR("ret = %d", ret);
         }
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        LOG_DEBUG("-----dma_interrupt_callback end-----");
+        return;
     #endif // end of queue test
     /*********************************************************/
     #if 0 // 二进制信号量测试模式（当前禁用）- 依赖RTOS信号量接口
@@ -1084,7 +1088,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
         }
     #endif // end of notify test
     /*********************************************************/
-    #if 1 // 全局变量通知模式（当前禁用）- 无OS依赖，OS环境下也可使用
+    #if 0 // 全局变量通知模式（当前禁用）- 无OS依赖，OS环境下也可使用
         // 设置全局变量为1，标记DMA传输完成（应用层线程轮询该变量）
         g_is_dma_readed = 1;
     #endif // end of global variable test
@@ -1094,7 +1098,6 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
         g_is_dma_readed = 1;
     #endif // end of global variable test (no OS)
 #endif /* End of OS_SUPPORTING */
-    LOG_DEBUG("-----dma_interrupt_callback end-----");
 
 dma_interrupt_null:
     {
@@ -1224,8 +1227,9 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
     p_mpu6050_driver->pf_read_fifo_isr_occur =   mpu_driver_read_fifo_isr_occur;
 
     p_mpu6050_driver->queue_handle = queue_handle;
-    p_mpu6050_driver->semaphore_binary_handle = semaphore_handle;
-    p_mpu6050_driver->notify_handle = notify_handle;
+    /** 未启用，暂时不需要  */
+    // p_mpu6050_driver->semaphore_binary_handle = semaphore_handle;
+    // p_mpu6050_driver->notify_handle = notify_handle;
 
     ret = bsp_mpu6050_driver_init(p_mpu6050_driver);
     if (MPU6050_OK != ret)

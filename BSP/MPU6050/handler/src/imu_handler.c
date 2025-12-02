@@ -28,9 +28,11 @@
 #ifdef  IMU_DEBUG
 #define LOG_DEBUG(x,...)  log_d(x, ##__VA_ARGS__)
 #define LOG_ERROR(x,...)  log_e(x, ##__VA_ARGS__)
+#define LOG_INFO(x,...)   log_i(x, ##__VA_ARGS__)
 #else
 #define LOG_DEBUG(x,...)   ((void)0)
 #define LOG_ERROR(x,...)   ((void)0)
+#define LOG_INFO(x,...)    ((void)0)
 #endif
 
 #define NULL_CHECK(x, tag)                              do{\
@@ -50,6 +52,8 @@ goto tag;                                                  \
 //---------------------------------------------------------------------------//
 //******************************** Variables ********************************//
 static uint8_t imu_handler_init_flag = HANDLER_UNINITIALIZED;
+// IMUHandler实例结构体
+bsp_imu_handler_t imu_handler_instance = {0};
 //******************************** Variables ********************************//
 //---------------------------------------------------------------------------//
 //******************************** Functions ********************************//
@@ -65,6 +69,53 @@ void register_callback_pin(void (*callback)(void*,void*))
 void register_callback_dma(void (*callback)(void*,void*))
 {
     pf_DMA_interrupt_callback = callback;
+}
+
+
+mpu6050_status_t imu_unpack_data(mpu6050_data_t* mpu6050_data)
+{
+    /****************************** 检查参数 ********************************/
+    NULL_CHECK(imu_handler_instance.pUnpack_queue_handle, unpack_error);
+    mpu6050_status_t ret = MPU6050_OK;
+    uint8_t data = 0;
+    int16_t temp = 0;
+
+    ret = imu_handler_instance.pOS->os_queue_get(
+                        imu_handler_instance.pUnpack_queue_handle,
+                        &data,
+                        0xffffffff);
+    ERROR_CHECK(ret, MPU6050_OK, "unpack get error", RETURNerror);
+    LOG_INFO("unpack task data = [%d]",data);
+    uint8_t* addr=mpu_circular_buffer.pf_get_rbuffer_addr(&mpu_circular_buffer);
+    log_i("unpack task addr = [%p]",addr);
+
+    mpu6050_data->accel_x_raw=(int16_t)(*(addr + 0) << 8 | *(addr + 1));
+    mpu6050_data->accel_y_raw=(int16_t)(*(addr + 2) << 8 | *(addr + 3));
+    mpu6050_data->accel_z_raw=(int16_t)(*(addr + 4) << 8 | *(addr + 5));
+    mpu6050_data->ax = mpu6050_data->accel_x_raw / 16384.0;
+    mpu6050_data->ay = mpu6050_data->accel_y_raw / 16384.0;
+    mpu6050_data->az = mpu6050_data->accel_z_raw / 14418.0;
+
+    temp = (int16_t)(*(addr+6)<<8 | *(addr + 7));
+    mpu6050_data->temperature = 36.53 + temp/340.0;
+
+    mpu6050_data->gyro_x_raw=(int16_t)(*(addr +  8) << 8 | *(addr +  9));
+    mpu6050_data->gyro_y_raw=(int16_t)(*(addr + 10) << 8 | *(addr + 11));
+    mpu6050_data->gyro_z_raw=(int16_t)(*(addr + 12) << 8 | *(addr + 13));
+    mpu6050_data->gx = mpu6050_data->gyro_x_raw / 131.0;
+    mpu6050_data->gy = mpu6050_data->gyro_y_raw / 131.0;
+    mpu6050_data->gz = mpu6050_data->gyro_z_raw / 131.0;
+
+    return ret;
+
+unpack_error:
+    {
+        return MPU6050_ERRORRESOURCE;
+    }
+RETURNerror:
+    {
+        return MPU6050_ERRORRESOURCE;
+    }
 }
 
 /**
@@ -88,8 +139,12 @@ mpu6050_status_t imu_handler_init(bsp_imu_handler_t* pHandler)
     mpu6050_status_t ret = MPU6050_OK;
     ret = pHandler->pOS->os_queue_create(pHandler->Queue_length,
                                          pHandler->Queue_item_size,
+                                         &pHandler->Queue_handle);
+    ERROR_CHECK(ret, MPU6050_OK, "queue_create error", RETURN_init_error);
+    ret = pHandler->pOS->os_queue_create(pHandler->Queue_length,
+                                         pHandler->Queue_item_size,
                                          pHandler->pUnpack_queue_handle);
-    ERROR_CHECK(ret, MPU6050_OK, "os_queue_create error", RETURN_init_error);
+    ERROR_CHECK(ret,MPU6050_OK,"unpackqueue_create error",RETURN_init_error);
     ret = bsp_mpu6050_driver_inst(pHandler->pDriver,
                                   pHandler->pIIC_driver,
                                   pHandler->pYield,
@@ -176,8 +231,6 @@ void imu_handler_thread(void* argument)
 
     // MPU6050 实例
     bsp_mpu6050_driver_t bsp_mpu6050_driver;
-    // IMUHandler实例结构体
-    bsp_imu_handler_t imu_handler_instance = {0};
     imu_handler_instance.pDriver                 = &bsp_mpu6050_driver;
     imu_handler_instance.Queue_handle            = NULL;
     imu_handler_instance.pUnpack_queue_handle    = NULL;
@@ -191,13 +244,20 @@ void imu_handler_thread(void* argument)
     for (;;)
     {
 /*********************************************************/
-#if 0 // queue test
+#if 1 // queue test
         ret = imu_handler_instance.pOS->os_queue_get(
                                         imu_handler_instance.Queue_handle,
                                         &data,
                                         0xffffffff);
         ERROR_CHECK(ret,MPU6050_OK,"os_queue_get error",RETURN_thread_error);
         LOG_DEBUG("imu_handler_thread: data = %d", data);
+        ret = imu_handler_instance.pOS->os_queue_put(
+            imu_handler_instance.pUnpack_queue_handle,
+            &data,
+            0);
+        ERROR_CHECK(ret,MPU6050_OK,"unpack_put error",RETURN_thread_error);
+        mpu6050_flag_set(0);
+        vTaskDelay(100);
 #endif// queue test
 
 /*********************************************************/
@@ -217,7 +277,7 @@ void imu_handler_thread(void* argument)
 #endif // End of notify test
 
 /*********************************************************/
-#if 1 // global variable test
+#if 0 // global variable test
         if (1 == mpu6050_flag_read())
         {
             // Put the data into the unpack queue for unpacking
@@ -230,7 +290,6 @@ void imu_handler_thread(void* argument)
             mpu6050_flag_set(0);
         }
 #endif // End of notify test
-        vTaskDelay(1);
     }
 
 
