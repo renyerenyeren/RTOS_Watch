@@ -5,6 +5,6 @@
 #ifndef RTOS_PROJECT_IMU_SYSTEM_ADAPTION_H
 #define RTOS_PROJECT_IMU_SYSTEM_ADAPTION_H
 
-
+void imu_system_adaption(void);
 
 #endif //RTOS_PROJECT_IMU_SYSTEM_ADAPTION_H

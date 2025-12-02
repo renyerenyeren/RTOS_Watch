@@ -7,6 +7,7 @@ add_library(bsp_mpu6050 STATIC)
 target_sources(bsp_mpu6050 PRIVATE
         # driver 目录源文件
         ${CMAKE_CURRENT_SOURCE_DIR}/hal_driver/src/mpu6050_driver.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/hal_driver/src/circular_buffer.c
         # handler 目录源文件
         ${CMAKE_CURRENT_SOURCE_DIR}/handler/src/imu_handler.c
 )

@@ -54,8 +54,6 @@ void unpack_task(void* argument)
 {
     LOG_INFO("unpack_task start");
     mpu6050_status_t ret = MPU6050_OK;
-    uint8_t data = 0;
-    int16_t temp = 0;
     mpu6050_data_t mpu6050_data;
 
     for (;;)

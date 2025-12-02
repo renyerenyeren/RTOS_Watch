@@ -7,6 +7,6 @@
 // #include "aht21_driver.h"
 // #include "temp_humi_handler.h"
 
-void system_adaption_inst(void);
+void temp_humi_system_adaption(void);
 
 #endif //RTOS_PROJECT_AHT21_SYSTEM_ADAPTION_H

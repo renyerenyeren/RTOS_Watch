@@ -238,7 +238,7 @@ static temp_humi_status_t os_queue_get_myown(void* queue_handler,
     }
 }
 TaskHandle_t temp_humi_handler = NULL;
-void system_adaption_inst(void)
+void temp_humi_system_adaption(void)
 {
     BaseType_t ret = xTaskCreate(temp_humi_handler_thread,
                                  "temp_humi_handler",

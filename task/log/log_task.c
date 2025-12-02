@@ -20,8 +20,8 @@
 //---------------------------------------------------------------------------//
 //******************************** Macros ***********************************//
 
-#define LOG_DEBUG
-#ifdef  LOG_DEBUG
+#define LOGTASK_DEBUG
+#ifdef  LOGTASK_DEBUG
 #define LOG_DEBUG(x,...)  log_d(x, ##__VA_ARGS__)
 #define LOG_ERROR(x,...)  log_e(x, ##__VA_ARGS__)
 #define LOG_INFO(x,...)   log_i(x, ##__VA_ARGS__)

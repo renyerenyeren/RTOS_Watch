@@ -2,6 +2,8 @@
 // Created by redmiX on 2025/11/25.
 //
 //******************************** Includes *********************************//
+#include "stm32f4xx_hal.h"
+#include "i2c.h"
 #include "imu_handler.h"
 #include "circular_buffer.h"
 #include "elog.h"
@@ -54,6 +56,9 @@ goto tag;                                                  \
 static uint8_t imu_handler_init_flag = HANDLER_UNINITIALIZED;
 // IMUHandler实例结构体
 bsp_imu_handler_t imu_handler_instance = {0};
+
+void (*pf_pin_interrupt_callback)(void*, void*) = NULL;
+void (*pf_DMA_interrupt_callback)(void*, void*) = NULL;
 //******************************** Variables ********************************//
 //---------------------------------------------------------------------------//
 //******************************** Functions ********************************//
@@ -310,3 +315,21 @@ RETURN_thread_error:
         vTaskDelete(NULL);
     }
 }
+
+/** @brief 引脚中断回调函数 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (NULL != pf_pin_interrupt_callback)
+    {
+        pf_pin_interrupt_callback(imu_handler_instance.pDriver,NULL);
+    }
+}
+/** @brief DMA中断回调函数 */
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+    if(hi2c  ==  &hi2c1)
+    {
+        pf_DMA_interrupt_callback(imu_handler_instance.pDriver, NULL);
+    }
+}
+

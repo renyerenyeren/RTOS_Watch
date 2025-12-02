@@ -6,12 +6,14 @@
 #include "mpu6050_driver.h"
 #include "imu_handler.h"
 #include "stm32f4xx_hal.h"
+#include "i2c.h"
 #include "DWT_delay.h"
 #include "elog.h"
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #include "queue.h"
 #include "task.h"
+#include "semphr.h"
 //******************************** Includes *********************************//
 //---------------------------------------------------------------------------//
 //******************************** Defines **********************************//
@@ -25,25 +27,56 @@
 //---------------------------------------------------------------------------//
 //******************************** Macros ***********************************//
 
-#define IMU_DEBUG
-#ifdef  IMU_DEBUG
+#define IMU_ADAPTION_DEBUG
+#ifdef  IMU_ADAPTION_DEBUG
 #define LOG_DEBUG(x,...)  log_d(x, ##__VA_ARGS__)
 #define LOG_ERROR(x,...)  log_e(x, ##__VA_ARGS__)
 #else
 #define LOG_DEBUG(x,...)   ((void)0)
 #define LOG_ERROR(x,...)   ((void)0)
 #endif
+
+#define NULL_CHECK(x, title)                   do{\
+if(NULL == x)                                     \
+{                                                 \
+log_e("PRT IS NULL");                             \
+goto title;                                       \
+}}while (0)
+
+#define ERROR_CHECK(EERO_NUM, NUM_EXPECT_VAL, LOG, tag) do{\
+if((EERO_NUM) != (NUM_EXPECT_VAL))                         \
+{                                                          \
+LOG_ERROR((LOG));                                          \
+goto tag;                                                  \
+}}while (0)
 //******************************** Macros ***********************************//
 //---------------------------------------------------------------------------//
 //******************************** 函数声明   *********************************//
 mpu6050_status_t i2c_init_myown(void* pIIC);
 mpu6050_status_t i2c_deinit_myown(void* pIIC);
-mpu6050_status_t i2c_mem_write_myown(void* pIIC);
-mpu6050_status_t i2c_mem_read_myown(void* pIIC);
-mpu6050_status_t i2c_mem_read_dma_myown(void* pIIC);
+mpu6050_status_t i2c_mem_write_myown(void *hi2c,
+                                     uint16_t slave_addr_8bit,
+                                     uint16_t mem_addr,
+                                     uint16_t mem_size,
+                                     uint8_t *pData,
+                                     uint16_t size,
+                                     uint32_t timeout);
+mpu6050_status_t i2c_mem_read_myown(void* hi2c,
+                                    uint16_t slave_addr_8bit,
+                                    uint16_t mem_addr,
+                                    uint16_t mem_size,
+                                    uint8_t* pData,
+                                    uint16_t size,
+                                    uint32_t timeout);
+mpu6050_status_t i2c_mem_read_dma_myown(void* hi2c,
+                                        uint16_t slave_addr_8bit,
+                                        uint16_t mem_addr,
+                                        uint16_t mem_size,
+                                        uint8_t* pData,
+                                        uint16_t size);
 
 mpu6050_status_t os_queue_create_myown(uint32_t const queue_size,
-                                       uint32_t const tiem_size,
+                                       uint32_t const item_size,
                                        void** queue_handle);
 mpu6050_status_t os_queue_put_myown(void*   const queue_handle,
                                     void*   const item,
@@ -81,7 +114,7 @@ mpu6050_status_t os_semaphore_wait_notify_myown(uint32_t ulBitsToClearOnEntry,
 //******************************** Variables ********************************//
 // 1. 初始化i2c驱动接口结构体
 static mpu_i2c_driver_interface_t i2c_driver_interface = {
-    // .hi2c = &hi2c1,
+    .hi2c = &hi2c1,
     .pf_i2c_init = i2c_init_myown,
     .pf_i2c_deinit = i2c_deinit_myown,
     .pf_i2c_mem_write = i2c_mem_write_myown,
@@ -132,3 +165,216 @@ static imu_handler_input_api_t imu_api = {
 //******************************** Variables ********************************//
 //---------------------------------------------------------------------------//
 //******************************** Functions ********************************//
+mpu6050_status_t i2c_init_myown(void* pIIC)
+{
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_deinit_myown(void* pIIC)
+{
+    __HAL_RCC_I2C2_CLK_DISABLE();
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6);
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_7);
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_mem_write_myown(void *hi2c,
+                                     uint16_t slave_addr_8bit,
+                                     uint16_t mem_addr,
+                                     uint16_t mem_size,
+                                     uint8_t *pData,
+                                     uint16_t size,
+                                     uint32_t timeout)
+{
+    HAL_StatusTypeDef ret = HAL_OK;
+    ret = HAL_I2C_Mem_Write(hi2c,
+                 slave_addr_8bit,
+                 mem_addr,
+                 mem_size,
+                 pData, size, timeout);
+    if (ret != HAL_OK)
+    {
+        return MPU6050_ERROR;
+    }
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_mem_read_myown(void* hi2c,
+                                    uint16_t slave_addr_8bit,
+                                    uint16_t mem_addr,
+                                    uint16_t mem_size,
+                                    uint8_t* pData,
+                                    uint16_t size,
+                                    uint32_t timeout)
+{
+    HAL_StatusTypeDef ret = HAL_OK;
+    ret = HAL_I2C_Mem_Read(hi2c,
+                 slave_addr_8bit,
+                 mem_addr,
+                 mem_size,
+                 pData, size, timeout);
+    if (ret != HAL_OK)
+    {
+        return MPU6050_ERROR;
+    }
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_mem_read_dma_myown(void* hi2c,
+                                        uint16_t slave_addr_8bit,
+                                        uint16_t mem_addr,
+                                        uint16_t mem_size,
+                                        uint8_t* pData,
+                                        uint16_t size)
+{
+    HAL_StatusTypeDef ret = HAL_OK;
+    ret = HAL_I2C_Mem_Read_DMA(hi2c,
+                 slave_addr_8bit,
+                 mem_addr,
+                 mem_size,
+                 pData, size);
+    if (ret != HAL_OK)
+    {
+        return MPU6050_ERROR;
+    }
+    return MPU6050_OK;
+}
+
+mpu6050_status_t os_queue_create_myown(uint32_t const queue_size,
+                                       uint32_t const item_size,
+                                       void** queue_handle)
+{
+    *queue_handle = xQueueCreate(queue_size, item_size);
+    NULL_CHECK(*queue_handle, os_queue_creat_error);
+    return MPU6050_OK;
+
+os_queue_creat_error:
+    {
+        return MPU6050_ERROR;
+    }
+}
+mpu6050_status_t os_queue_put_myown(void*   const queue_handle,
+                                    void*   const item,
+                                    uint32_t const timeout)
+{
+    BaseType_t ret = xQueueSend(queue_handle, item, timeout);
+    ERROR_CHECK(ret, pdPASS, "queue put error", os_queue_put_error);
+    return MPU6050_OK;
+
+os_queue_put_error:
+    {
+        return MPU6050_ERRORRESOURCE;
+    }
+}
+mpu6050_status_t os_queue_put_isr_myown(void* const queue_handle,
+                                        void* const item,
+                                        long* const HigherPriorityTaskWoken)
+{
+    BaseType_t ret = xQueueSendFromISR(queue_handle, item,
+                                       HigherPriorityTaskWoken);
+    ERROR_CHECK(ret, pdPASS, "queueisr put error", os_queue_put_error);
+    return MPU6050_OK;
+
+os_queue_put_error:
+    {
+        return MPU6050_ERRORRESOURCE;
+    }
+}
+mpu6050_status_t os_queue_get_myown(void*    const queue_handle,
+                                    void*    const item,
+                                    uint32_t const timeout)
+{
+    BaseType_t ret = xQueueReceive(queue_handle, item, timeout);
+    ERROR_CHECK(ret, pdPASS, "queue get error", os_queue_get_error);
+    return MPU6050_OK;
+
+os_queue_get_error:
+    {
+        return MPU6050_ERRORRESOURCE;
+    }
+}
+mpu6050_status_t os_queue_delete_myown(void* const queue_handle)
+{
+    vQueueDelete(queue_handle);
+    return MPU6050_OK;
+}
+
+mpu6050_status_t os_semaphore_create_mutex_myown(void** mutex_handle)
+{
+    *mutex_handle = xSemaphoreCreateMutex();
+    NULL_CHECK(*mutex_handle, os_semaphore_create_mutex_error);
+    return MPU6050_OK;
+
+os_semaphore_create_mutex_error:
+    {
+        return MPU6050_ERRORRESOURCE;
+    }
+}
+mpu6050_status_t os_semaphore_delete_mutex_myown(void* mutex_handle)
+{
+    //vQueueDelete(mutex_handle);
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_lock_mutex_myown(void* mutex_handle)
+{
+    xSemaphoreTake(mutex_handle, portMAX_DELAY);
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_unlock_mutex_myown(void* mutex_handle)
+{
+    xSemaphoreGive(mutex_handle);
+    return MPU6050_OK;
+}
+
+mpu6050_status_t os_semaphore_create_binary_myown(void** binary_handle)
+{
+    *binary_handle = xSemaphoreCreateBinary();
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_delete_binary_myown(void* binary_handle)
+{
+    //vQueueDelete(binary_handle);
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_wait_binary_myown(void* binary_handle)
+{
+    xSemaphoreGive(binary_handle);
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_signal_binary_myown(void* binary_handle)
+{
+    xSemaphoreTake(binary_handle, portMAX_DELAY);
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_signal_binary_isr_myown(void* binary_handle,
+                                            long* HigherPriorityTaskWoken)
+{
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_signal_notify_isr_myown(
+                                    void * const notify_handle,
+                                    uint32_t ulValue,
+                                    uint32_t eAction,
+                                    long * const HigherPriorityTaskWoken)
+{
+    return MPU6050_OK;
+}
+mpu6050_status_t os_semaphore_wait_notify_myown(uint32_t ulBitsToClearOnEntry,
+                                         uint32_t ulBitsToClearOnExit,
+                                         uint32_t *pulNotificationValue,
+                                         uint32_t timeout)
+{
+    return MPU6050_OK;
+}
+
+TaskHandle_t imu_handler = NULL;
+void imu_system_adaption(void)
+{
+    BaseType_t ret = xTaskCreate(imu_handler_thread,
+                                 "imu_handler",
+                                 128*8,
+                                 &imu_api,
+                                 25,
+                                 &imu_handler);
+    if (pdPASS != ret)
+    {
+        LOG_ERROR("task create error");
+        vTaskDelete(imu_handler);
+    }
+}
