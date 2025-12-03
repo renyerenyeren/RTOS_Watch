@@ -75,6 +75,8 @@ mpu6050_status_t i2c_mem_read_dma_myown(void* hi2c,
                                         uint8_t* pData,
                                         uint16_t size);
 
+static void os_Delay_myown(const uint32_t time_ms);
+
 mpu6050_status_t os_queue_create_myown(uint32_t const queue_size,
                                        uint32_t const item_size,
                                        void** queue_handle);
@@ -133,7 +135,7 @@ static mpu_timebase_interface_t timebase_interface = {
 };
 // 4. 初始化OS延时函数接口结构体
 static mpu_yield_interface_t yield_interface = {
-    .pf_rtos_yield = vTaskDelay
+    .pf_rtos_yield = os_Delay_myown
 };
 // 5， 初始化os操作接口结构体
 static os_interface_t os_interface = {
@@ -234,6 +236,11 @@ mpu6050_status_t i2c_mem_read_dma_myown(void* hi2c,
         return MPU6050_ERROR;
     }
     return MPU6050_OK;
+}
+
+static void os_Delay_myown(const uint32_t time_ms)
+{
+    vTaskDelay(pdMS_TO_TICKS(time_ms));
 }
 
 mpu6050_status_t os_queue_create_myown(uint32_t const queue_size,
