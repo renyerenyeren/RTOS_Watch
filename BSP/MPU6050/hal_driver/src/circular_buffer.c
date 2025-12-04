@@ -85,6 +85,7 @@ void data_writed(circular_buffer_t *buffer)
     //* DMA写数据结束
     // todo:buffer已满
     buffer->wflag = (buffer->wflag + 1) % buffer->size;
+    return;
 
 null_ptr:
     {
@@ -102,6 +103,7 @@ void data_readed(circular_buffer_t *buffer)
     //* DMA写数据结束
     // todo:buffer已满
     buffer->rflag = (buffer->rflag + 1) % buffer->size;
+    return;
 
 null_ptr:
     {
@@ -128,6 +130,7 @@ void buffer_init(circular_buffer_t *buffer, uint8_t size)
     buffer->pf_get_wbuffer_addr = get_wbuffer_addr;
     buffer->pf_data_readed = data_readed;
     buffer->pf_data_writed = data_writed;
+    return;
 
 null_ptr:
      {

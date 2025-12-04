@@ -3,8 +3,14 @@
 //
 //******************************** Includes *********************************//
 #include "unpack_task.h"
+
+#include "bsp_mpu6050_reg_bit.h"
+#include "mpu6050_driver.h"
 #include "imu_handler.h"
 #include "elog.h"
+#include "FreeRTOS.h"
+#include "i2c.h"
+#include "task.h"
 //******************************** Includes *********************************//
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
@@ -37,15 +43,104 @@ LOG_ERROR(#x" is null ptr");                               \
 goto tag;}                                                 \
 }while (0)
 
-#define ERROR_CHECK(EERO_NUM, NUM_EXPECT_VAL, LOG, tag) do{\
+#define ERROR_CHECK(EERO_NUM, NUM_EXPECT_VAL, LOG)      do{\
 if((EERO_NUM) != (NUM_EXPECT_VAL))                         \
 {                                                          \
 LOG_ERROR((LOG));                                          \
-goto tag;                                                  \
 }}while (0)
 //******************************** Macros ***********************************//
 //---------------------------------------------------------------------------//
 //******************************** Variables ********************************//
+
+mpu6050_status_t i2c_init_myown(void* pIIC)
+{
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_deinit_myown(void* pIIC)
+{
+    __HAL_RCC_I2C2_CLK_DISABLE();
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6);
+    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_7);
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_mem_write_myown(void *hi2c,
+                                     uint16_t slave_addr_8bit,
+                                     uint16_t mem_addr,
+                                     uint16_t mem_size,
+                                     uint8_t *pData,
+                                     uint16_t size,
+                                     uint32_t timeout)
+{
+    HAL_StatusTypeDef ret = HAL_OK;
+    ret = HAL_I2C_Mem_Write(hi2c,
+                 slave_addr_8bit,
+                 mem_addr,
+                 mem_size,
+                 pData, size, timeout);
+    if (ret != HAL_OK)
+    {
+        return MPU6050_ERROR;
+    }
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_mem_read_myown(void* hi2c,
+                                    uint16_t slave_addr_8bit,
+                                    uint16_t mem_addr,
+                                    uint16_t mem_size,
+                                    uint8_t* pData,
+                                    uint16_t size,
+                                    uint32_t timeout)
+{
+    HAL_StatusTypeDef ret = HAL_OK;
+    ret = HAL_I2C_Mem_Read(hi2c,
+                 slave_addr_8bit,
+                 mem_addr,
+                 mem_size,
+                 pData, size, timeout);
+    if (ret != HAL_OK)
+    {
+        return MPU6050_ERROR;
+    }
+    return MPU6050_OK;
+}
+mpu6050_status_t i2c_mem_read_dma_myown(void* hi2c,
+                                        uint16_t slave_addr_8bit,
+                                        uint16_t mem_addr,
+                                        uint16_t mem_size,
+                                        uint8_t* pData,
+                                        uint16_t size)
+{
+    HAL_StatusTypeDef ret = HAL_OK;
+    ret = HAL_I2C_Mem_Read_DMA(hi2c,
+                 slave_addr_8bit,
+                 mem_addr,
+                 mem_size,
+                 pData, size);
+    if (ret != HAL_OK)
+    {
+        return MPU6050_ERROR;
+    }
+    return MPU6050_OK;
+}
+
+static mpu_i2c_driver_interface_t i2c_driver_interface = {
+    .hi2c = &hi2c1,
+    .pf_i2c_init = i2c_init_myown,
+    .pf_i2c_deinit = i2c_deinit_myown,
+    .pf_i2c_mem_write = i2c_mem_write_myown,
+    .pf_i2c_mem_read = i2c_mem_read_myown,
+    .pf_i2c_mem_read_dma = i2c_mem_read_dma_myown
+};
+
+bsp_mpu6050_driver_t mpu6050 = {
+    // .p_buffer_interface = &buffer_interface,
+    // .p_delay_interface = &delay_interface,
+    .p_i2c_driver_interface = &i2c_driver_interface,
+    // .p_interrupt_interface = &interrupt_interface,
+    // .p_os_interface = &os_interface,
+    // .p_timebase_interface = &timebase_interface,
+    // .p_yield_interface = &yield_interface
+};
 //******************************** Variables ********************************//
 //---------------------------------------------------------------------------//
 //******************************** Functions ********************************//
@@ -54,24 +149,22 @@ void unpack_task(void* argument)
 {
     LOG_INFO("unpack_task start");
     mpu6050_status_t ret = MPU6050_OK;
-    mpu6050_data_t mpu6050_data;
+    mpu6050_data_t mpu6050_data = {0};
 
     for (;;)
     {
         ret = imu_unpack_data(&mpu6050_data);
-        ERROR_CHECK(ret, MPU6050_OK, "unpack get data error", error);
-
-        LOG_INFO("UnpackThread temp=%f", mpu6050_data.temperature);
-        LOG_INFO("UnpackThread ax=%f", mpu6050_data.ax);
-        LOG_INFO("UnpackThread ay=%f", mpu6050_data.ay);
-        LOG_INFO("UnpackThread az=%f", mpu6050_data.az);
-        LOG_INFO("UnpackThread gx=%f", mpu6050_data.gx);
-        LOG_INFO("UnpackThread gy=%f", mpu6050_data.gy);
-        LOG_INFO("UnpackThread gz=%f", mpu6050_data.gz);
-
-        error:
+        ERROR_CHECK(ret, MPU6050_OK, "unpack get data error");
+        if (MPU6050_OK == ret)
         {
-            return;
+            LOG_INFO("UnpackThread temp=%f", mpu6050_data.temperature);
+            LOG_INFO("UnpackThread ax=%f", mpu6050_data.ax);
+            LOG_INFO("UnpackThread ay=%f", mpu6050_data.ay);
+            LOG_INFO("UnpackThread az=%f", mpu6050_data.az);
+            LOG_INFO("UnpackThread gx=%f", mpu6050_data.gx);
+            LOG_INFO("UnpackThread gy=%f", mpu6050_data.gy);
+            LOG_INFO("UnpackThread gz=%f", mpu6050_data.gz);
+            mpu_driver_set_interrupt_enable(&mpu6050, DATA_RDY_EN_BIT(1));
         }
     }
 }

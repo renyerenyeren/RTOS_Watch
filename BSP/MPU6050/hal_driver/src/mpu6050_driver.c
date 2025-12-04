@@ -270,7 +270,10 @@ static mpu6050_status_t mpu_driver_set_rate(bsp_mpu6050_driver_t *p_mpu6050,
  *|BIT7	| 自由落体中断
  * @return 执行状态
  */
-static mpu6050_status_t mpu_driver_set_interrupt_enable(
+// static mpu6050_status_t mpu_driver_set_interrupt_enable(
+//                                                 bsp_mpu6050_driver_t *p_mpu6050,
+//                                                 uint8_t data)
+mpu6050_status_t mpu_driver_set_interrupt_enable(
                                                 bsp_mpu6050_driver_t *p_mpu6050,
                                                 uint8_t data)
 {
@@ -1043,7 +1046,7 @@ void dma_interrupt_callback(void *p_mpu6050, void *p_data)
     // 使缓冲区的下一个槽位变为可用状态，供下一次DMA传输使用
     mpu_circular_buffer.pf_data_writed(&mpu_circular_buffer);
     /*********************************************************/
-    #if 1 // 队列通信测试模式（当前禁用）- 依赖RTOS队列接口
+    #if 1 // 队列通信测试模式（当前启用）- 依赖RTOS队列接口
         // 向应用层线程的消息队列发送通知（1表示数据就绪）
         if (NULL == p_mpu_driver->queue_handle)
         {
@@ -1149,8 +1152,8 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
     NULL_CHECK(callback_register_dma, mpu_driver_inst_null);
 #ifdef OS_SUPPORTING
     NULL_CHECK(queue_handle,     mpu_driver_inst_null);
-    NULL_CHECK(semaphore_handle, mpu_driver_inst_null);
-    NULL_CHECK(notify_handle,    mpu_driver_inst_null);
+    // NULL_CHECK(semaphore_handle, mpu_driver_inst_null);  // 不使用信号量和任务邮箱
+    // NULL_CHECK(notify_handle,    mpu_driver_inst_null);
 #endif /* End of OS_SUPPORTING */
     /****************************** 检查IIC参数 *****************************/
     NULL_CHECK(p_i2c_driver_interface->pf_i2c_init,      mpu_driver_inst_null);
@@ -1240,6 +1243,8 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
 
     callback_register    (int_interrupt_callback);
     callback_register_dma(dma_interrupt_callback);
+
+    return ret;
 
 mpu_driver_inst_null:
     {

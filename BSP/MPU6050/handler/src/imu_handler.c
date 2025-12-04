@@ -154,7 +154,7 @@ mpu6050_status_t imu_handler_init(bsp_imu_handler_t* pHandler)
     ERROR_CHECK(ret, MPU6050_OK, "queue_create error", RETURN_init_error);
     ret = pHandler->pOS->os_queue_create(pHandler->Queue_length,
                                          pHandler->Queue_item_size,
-                                         pHandler->pUnpack_queue_handle);
+                                         &pHandler->pUnpack_queue_handle);
     ERROR_CHECK(ret,MPU6050_OK,"unpackqueue_create error",RETURN_init_error);
     ret = bsp_mpu6050_driver_inst(pHandler->pDriver,
                                   pHandler->pIIC_driver,
@@ -245,7 +245,7 @@ void imu_handler_thread(void* argument)
     imu_handler_instance.pDriver                 = &bsp_mpu6050_driver;
     imu_handler_instance.Queue_handle            = NULL;
     imu_handler_instance.pUnpack_queue_handle    = NULL;
-    imu_handler_instance.Queue_length            = 20;
+    imu_handler_instance.Queue_length            = 100;
     imu_handler_instance.Queue_item_size         = 1;
     imu_handler_instance.semaphore_binary_handle = NULL;
     ret = imu_handler_inst(&imu_handler_instance, input_api);
@@ -269,6 +269,7 @@ void imu_handler_thread(void* argument)
         ERROR_CHECK(ret,MPU6050_OK,"unpack_put error",RETURN_thread_error);
         mpu6050_flag_set(0);
         vTaskDelay(100);
+        continue;
 #endif// queue test
 
 /*********************************************************/
@@ -301,18 +302,17 @@ void imu_handler_thread(void* argument)
             mpu6050_flag_set(0);
         }
 #endif // End of notify test
-    }
-
 
 NULLPTR_thread_error:
-    {
-        LOG_ERROR("input api is null");
-        vTaskDelete(NULL);
-    }
+{
+    LOG_ERROR("input api is null");
+    vTaskDelete(NULL);
+}
 RETURN_thread_error:
-    {
-        LOG_ERROR("imu_handler_inst failed");
-        vTaskDelete(NULL);
+{
+    LOG_ERROR("imu_handler_inst failed");
+    vTaskDelete(NULL);
+}
     }
 }
 
@@ -325,7 +325,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
 }
 /** @brief DMA中断回调函数 */
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
     if(hi2c  ==  &hi2c1)
     {

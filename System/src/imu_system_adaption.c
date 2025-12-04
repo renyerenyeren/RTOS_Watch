@@ -248,13 +248,8 @@ mpu6050_status_t os_queue_create_myown(uint32_t const queue_size,
                                        void** queue_handle)
 {
     *queue_handle = xQueueCreate(queue_size, item_size);
-    NULL_CHECK(*queue_handle, os_queue_creat_error);
+    if (NULL == *queue_handle) return MPU6050_ERRORRESOURCE;
     return MPU6050_OK;
-
-os_queue_creat_error:
-    {
-        return MPU6050_ERROR;
-    }
 }
 mpu6050_status_t os_queue_put_myown(void*   const queue_handle,
                                     void*   const item,
@@ -375,7 +370,7 @@ void imu_system_adaption(void)
 {
     BaseType_t ret = xTaskCreate(imu_handler_thread,
                                  "imu_handler",
-                                 128*8,
+                                 128*12,
                                  &imu_api,
                                  25,
                                  &imu_handler);

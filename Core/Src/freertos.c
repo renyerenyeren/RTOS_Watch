@@ -117,7 +117,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of main_task */
-  main_taskHandle = osThreadNew(MainTask, NULL, &main_task_attributes);
+  // main_taskHandle = osThreadNew(MainTask, NULL, &main_task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -160,12 +160,12 @@ void MainTask(void *argument)
   //   .pf_callback = temp_humi_callback
   // };
   /* Infinite loop */
-  // for(;;)
-  // {
-  //   // log_d("send event is start");
-  //   // vTaskDelay(pdMS_TO_TICKS(5));
-  //   // bsp_temp_humi_read(&event);
-  // }
+  for(;;)
+  {
+    // log_d("send event is start");
+    // vTaskDelay(pdMS_TO_TICKS(5));
+    // bsp_temp_humi_read(&event);
+  }
   /* USER CODE END MainTask */
 }
 

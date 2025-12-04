@@ -68,8 +68,10 @@ void elog_port_output(const char *log, size_t size) {
 void elog_port_output_lock(void) {
     
     /* add your code here */
-  taskENTER_CRITICAL();
-    
+  // taskENTER_CRITICAL();
+  if (!xPortIsInsideInterrupt()) { // 仅任务上下文加锁
+        taskENTER_CRITICAL();
+  }
 }
 
 /**
@@ -78,7 +80,11 @@ void elog_port_output_lock(void) {
 void elog_port_output_unlock(void) {
     
     /* add your code here */
-  taskEXIT_CRITICAL();
+  // taskEXIT_CRITICAL();
+    if (!xPortIsInsideInterrupt()) { // 仅任务上下文解锁
+        taskEXIT_CRITICAL();
+    }
+
 }
 
 /**
