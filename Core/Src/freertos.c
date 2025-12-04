@@ -29,6 +29,7 @@
 #include "elog.h"
 #include "log_task.h"
 #include "unpack_task.h"
+#include "user_debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,7 +97,7 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-
+  user_debug_init();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -121,11 +122,11 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  BaseType_t ret = xTaskCreate(log_task, "log_task",                       // 创建日志输出任务
-                  128*6, NULL, 1, &g_log_task_handler);
-  ERROR_CHECK(ret, pdPASS, "create log_task failed");
+  // BaseType_t ret = xTaskCreate(log_task, "log_task",                       // 创建日志输出任务
+  //                 128*6, NULL, 1, &g_log_task_handler);
+  // ERROR_CHECK(ret, pdPASS, "create log_task failed");
   imu_system_adaption();                                                   // 创建mpu6050解包任务
-  ret = xTaskCreate(unpack_task, "unpack_task",                            // 创建mpu6050解包任务
+  BaseType_t ret = xTaskCreate(unpack_task, "unpack_task",                            // 创建mpu6050解包任务
                   128*8, NULL, 24, &g_unpack_task_handler);
   ERROR_CHECK(ret, pdPASS, "create log_task failed");
   /* USER CODE END RTOS_THREADS */

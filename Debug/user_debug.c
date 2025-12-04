@@ -26,7 +26,7 @@ void user_debug_init(void)
                                           ELOG_FMT_TAG));
 
   elog_start();
-  elog_flush();
+  // elog_flush();
 }
 
 

@@ -180,11 +180,11 @@ void DMA1_Stream0_IRQHandler(void)
 void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
-
+  (*(volatile uint32_t *)(GPIOB_BASE + 0x18UL)) = (1 << 3);
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
   /* USER CODE BEGIN EXTI9_5_IRQn 1 */
-
+  (*(volatile uint32_t *)(GPIOB_BASE + 0x18UL)) = (1 << (3 + 16));  // BSRR 的高16位：复位对应引脚（写1拉低）
   /* USER CODE END EXTI9_5_IRQn 1 */
 }
 

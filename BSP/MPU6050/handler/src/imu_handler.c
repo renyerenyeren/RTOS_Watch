@@ -5,6 +5,8 @@
 #include "stm32f4xx_hal.h"
 #include "i2c.h"
 #include "imu_handler.h"
+
+#include "bsp_mpu6050_reg_bit.h"
 #include "circular_buffer.h"
 #include "elog.h"
 #include "FreeRTOS.h"
@@ -98,7 +100,7 @@ mpu6050_status_t imu_unpack_data(mpu6050_data_t* mpu6050_data)
     ERROR_CHECK(ret, MPU6050_OK, "unpack get error", RETURNerror);
     LOG_INFO("unpack task data = [%d]",data);
     uint8_t* addr=mpu_circular_buffer.pf_get_rbuffer_addr(&mpu_circular_buffer);
-    log_i("unpack task addr = [%p]",addr);
+    LOG_INFO("unpack task addr = [%p]",addr);
 
     mpu6050_data->accel_x_raw=(int16_t)(*(addr + 0) << 8 | *(addr + 1));
     mpu6050_data->accel_y_raw=(int16_t)(*(addr + 2) << 8 | *(addr + 3));
@@ -116,6 +118,8 @@ mpu6050_status_t imu_unpack_data(mpu6050_data_t* mpu6050_data)
     mpu6050_data->gx = mpu6050_data->gyro_x_raw / 131.0;
     mpu6050_data->gy = mpu6050_data->gyro_y_raw / 131.0;
     mpu6050_data->gz = mpu6050_data->gyro_z_raw / 131.0;
+
+    mpu_circular_buffer.pf_data_readed(&mpu_circular_buffer);
 
     return ret;
 
@@ -245,7 +249,7 @@ void imu_handler_thread(void* argument)
     imu_handler_instance.pDriver                 = &bsp_mpu6050_driver;
     imu_handler_instance.Queue_handle            = NULL;
     imu_handler_instance.pUnpack_queue_handle    = NULL;
-    imu_handler_instance.Queue_length            = 100;
+    imu_handler_instance.Queue_length            = 20;
     imu_handler_instance.Queue_item_size         = 1;
     imu_handler_instance.semaphore_binary_handle = NULL;
     ret = imu_handler_inst(&imu_handler_instance, input_api);
@@ -262,13 +266,16 @@ void imu_handler_thread(void* argument)
                                         0xffffffff);
         ERROR_CHECK(ret,MPU6050_OK,"os_queue_get error",RETURN_thread_error);
         LOG_DEBUG("imu_handler_thread: data = %d", data);
+
+        // mpu_driver_set_interrupt_enable(imu_handler_instance.pDriver, DATA_RDY_EN_BIT(1));
+
         ret = imu_handler_instance.pOS->os_queue_put(
             imu_handler_instance.pUnpack_queue_handle,
             &data,
             0);
         ERROR_CHECK(ret,MPU6050_OK,"unpack_put error",RETURN_thread_error);
         mpu6050_flag_set(0);
-        vTaskDelay(100);
+        vTaskDelay(5);
         continue;
 #endif// queue test
 

@@ -42,6 +42,6 @@ void log_task(void *argument)
     user_debug_init();
     for (;;)
     {
-        elog_flush();
+        // elog_flush();
     }
 }
