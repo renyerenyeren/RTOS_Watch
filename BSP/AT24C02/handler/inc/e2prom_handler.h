@@ -1,0 +1,8 @@
+//
+// Created by redmiX on 2025/11/26.
+//
+
+#ifndef RTOS_PROJECT_E2PROM_HANDLER_H
+#define RTOS_PROJECT_E2PROM_HANDLER_H
+
+#endif //RTOS_PROJECT_E2PROM_HANDLER_H
