@@ -80,7 +80,7 @@ const i2c_bus_t aht21_i2c_bus = {
     .I2C_SDA_PIN  = GPIO_PIN_9
 };
 // 2. 初始化i2c驱动接口结构体
-aht_i2c_driver_interface_t i2c_driver_interface = {
+static aht_i2c_driver_interface_t i2c_driver_interface = {
     .pf_i2c_init         = i2c_init_myown,
     .pf_i2c_deinit       = i2c_deinit_myown,
     .pf_i2c_start        = i2c_start_myown,
@@ -94,22 +94,22 @@ aht_i2c_driver_interface_t i2c_driver_interface = {
     .pf_critical_exit    = critical_exit_myown
 };
 // 3. 初始化获取时基接口结构体
-timebase_interface_t timebase_interface = {
+static timebase_interface_t timebase_interface = {
     .pf_get_tick_count = get_tick_count_myown
 };
 // 4. 初始化OS延时函数接口结构体
-yield_interface_t yeiled_interface = {
+static yield_interface_t yeiled_interface = {
     .pf_rtos_yield = os_Delay_myown
 };
 // 5， 初始化os操作接口结构体
-temp_humi_handler_os_api_t os_api= {
+static temp_humi_handler_os_api_t os_api= {
     .os_delay = os_delay_ms_myown,
     .os_queue_creat = os_queue_creat_myown,
     .os_queue_put = os_queue_put_myown,
     .os_queue_get = os_queue_get_myown
 };
 // 6. 初始化
-temp_humi_handler_input_api_t input_api = {
+static temp_humi_handler_input_api_t input_api = {
     .i2c_driver_interface = &i2c_driver_interface,
     .timebase_interface = &timebase_interface,
     .yield_interface = &yeiled_interface,
