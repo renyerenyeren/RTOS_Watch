@@ -25,11 +25,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "imu_system_adaption.h"
+#include "../../03-Adapter/03_2-MPU6050/imu_system_adaption.h"
 #include "elog.h"
 #include "log_task.h"
 #include "unpack_task.h"
-#include "user_debug.h"
+#include "../../03-Adapter/03_X-Debug/user_debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

@@ -42,19 +42,16 @@ add_subdirectory(cmake/stm32cubemx)
 # ------------------------------
 # 新增：引入 BSP 模块
 # ------------------------------
-add_subdirectory(BSP)
+add_subdirectory(01-BSP)
 # ------------------------------
-# 新增：引入 System 模块
+# 新增：引入 LIBRARIES 模块
 # ------------------------------
-add_subdirectory(System)
+add_subdirectory(02-Libraries)
 # ------------------------------
-# 新增：引入 user_lib 模块
+# 新增：引入 LIBRARIES 模块
 # ------------------------------
-add_subdirectory(user_lib)
-# ------------------------------
-# 新增：引入 Debug 模块
-# ------------------------------
-add_subdirectory(Debug)
+add_subdirectory(03-Adapter)
+
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -91,15 +88,12 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         # ------------------------------
         bsp
         # ------------------------------
-        # 新增：链接 System 库
+        # 新增：链接 LIBRARIES 库
         # ------------------------------
-        system_adaption
+        libraries
         # ------------------------------
-        # 新增：链接 user_debug 库
+        # 新增：链接 adapter 库
         # ------------------------------
-        user_debug
-        # ------------------------------
-        # 新增：链接 user_lib 库
-        # ------------------------------
-        user_lib
+        adapter
+
 )
