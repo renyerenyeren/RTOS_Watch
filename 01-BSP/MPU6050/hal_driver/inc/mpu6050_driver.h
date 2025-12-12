@@ -275,11 +275,6 @@ mpu6050_status_t bsp_mpu6050_driver_inst(
 uint32_t mpu6050_flag_read(void);
 void mpu6050_flag_set(uint8_t flag);
 
-/** test */
-mpu6050_status_t mpu_driver_set_interrupt_enable(
-                                                bsp_mpu6050_driver_t *p_mpu6050,
-                                                uint8_t data);
-/** test */
 //******************************** 函数声明 ***********************************//
 
 #endif //RTOS_PROJECT_MPU6050_DRIVER_H
