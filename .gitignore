@@ -7,10 +7,5 @@ mx.scratch
 /.vscode/c_cpp_properties.json
 /.settings/ide.store.json
 /.vscode/settings.json
-/.idea/vcs.xml
-/0X-DOC/C24112_姿态传感器-陀螺仪_MPU-6050_规格书_姿态传感器-陀螺仪_MPU-6050_英文规格书.PDF
-/0X-DOC/C688857_EEPROM_AT24C02_规格书_WJ138315.PDF
-/0X-DOC/C2456211_NOR+FLASH_W25Q16JVSNIQ_规格书_WJ271321.PDF
-/0X-DOC/C2827328_温湿度传感器_AHT21_规格书_WJ214781.PDF
-/0X-DOC/mpu6050寄存器手册中文版.pdf
-/0X-DOC/W25Q16BV中文数据手册.pdf
+/.idea
+/0X-DOC
