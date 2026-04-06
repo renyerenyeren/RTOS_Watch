@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 add_subdirectory(02_1-Common/DWT_delay)
 # 引入 Common-I2C 子模块
 add_subdirectory(02_1-Common/Soft_IIC)
+# 引入 Common-dlist 子模块
+add_subdirectory(02_1-Common/DList)
 
 # 引入 ThirdParty-elog 子模块
 add_subdirectory(02_2-ThirdParty/elog)
@@ -24,6 +26,7 @@ target_link_libraries(libraries INTERFACE
         ##Common
         DWT_delay
         soft_i2c
+        dlist
         ##ThirdParty
         elog
         SEGGER
