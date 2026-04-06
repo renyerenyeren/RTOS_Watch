@@ -33,6 +33,7 @@ typedef struct dnode
 }dnode_t;
 
 typedef int (*dlist_cb_t)(dnode_t *node, void *userData);
+//回调应返回 0 表示相等，非0 表示不等
 typedef int (*dlist_cmp_cb_t)(void *src_data, void *target_data);
 //**************************** Interface Structs ****************************//
 //---------------------------------------------------------------------------//
