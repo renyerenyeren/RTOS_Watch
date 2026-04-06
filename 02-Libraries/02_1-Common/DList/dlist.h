@@ -25,27 +25,46 @@ typedef enum
 //******************************** Typedefs *********************************//
 //---------------------------------------------------------------------------//
 //**************************** Interface Structs ****************************//
+/**
+ * @brief 双向链表节点结构
+ */
 typedef struct dnode
 {
-    void *data;
-    struct dnode *next;
-    struct dnode *prev;
-}dnode_t;
+    void *data;              // 节点数据指针
+    struct dnode *next;      // 后继节点指针
+    struct dnode *prev;      // 前驱节点指针
+} dnode_t;
 
+/**
+ * @brief 链表遍历回调函数类型
+ * @param node 当前节点
+ * @param userData 用户自定义数据
+ * @return 0继续遍历，非0停止遍历
+ */
 typedef int (*dlist_cb_t)(dnode_t *node, void *userData);
-//回调应返回 0 表示相等，非0 表示不等
+
+/**
+ * @brief 数据比较回调函数类型
+ * @param src_data 源数据
+ * @param target_data 目标数据
+ * @return 0表示相等，非0表示不等
+ */
 typedef int (*dlist_cmp_cb_t)(void *src_data, void *target_data);
 //**************************** Interface Structs ****************************//
 //---------------------------------------------------------------------------//
 //******************************** Classes **********************************//
+/**
+ * @brief 双向链表结构
+ * @details 使用静态内存池管理节点，避免动态内存分配
+ */
 typedef struct
 {
-    dnode_t nodePool[DLIST_MAX_NODES];
-    dnode_t *freeList;
-    dnode_t *head;
-    dnode_t *tail;
-    uint32_t length;
-    uint32_t maxNodes;
+    dnode_t nodePool[DLIST_MAX_NODES];  // 静态内存池
+    dnode_t *freeList;                  // 空闲节点链表头
+    dnode_t *head;                      // 使用链表头
+    dnode_t *tail;                      // 使用链表尾
+    uint32_t length;                    // 当前节点数
+    uint32_t maxNodes;                  // 最大节点数
 } dlist_t;
 //******************************** Classes **********************************//
 //---------------------------------------------------------------------------//
