@@ -102,6 +102,11 @@ dnode_t* dListFindByValue(dlist_t* list, void* data);
 dnode_t* dListFindByPosition(dlist_t* list, uint32_t pos);
 
 /**
+ * @brief  反转链表
+ */
+void dListReverse(dlist_t* list);
+
+/**
  * @brief  正向遍历
  */
 void dListForEachForward(dlist_t* list, void* userData);
@@ -110,11 +115,6 @@ void dListForEachForward(dlist_t* list, void* userData);
  * @brief  反向遍历
  */
 void dListForEachBackward(dlist_t* list, void* userData);
-
-/**
- * @brief  反转链表
- */
-void dListReverse(dlist_t* list);
 //******************************** 函数声明 ***********************************//
 
 #endif //RTOS_PROJECT_DLIST_H

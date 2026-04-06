@@ -40,6 +40,8 @@ static dnode_t* alloc_node(dlist_t* list)
     node->data = NULL;
     node->next = NULL;
     node->prev = NULL;
+
+    return node;
 }
 
 /**
@@ -77,6 +79,130 @@ dlist_status_t dListInit(dlist_t* list)
     list->tail = NULL;
     list->length = 0;
     list->maxNodes = maxnodes;
+
+    return DLIST_OK;
+}
+
+void dListClear(dlist_t* list)
+{
+    if (NULL == list)
+    {
+        return;
+    }
+
+    dnode_t* p = list->head;
+    while (NULL != p)
+    {
+        dnode_t* next = p->next;
+        free_node(list, p);
+        p = next;
+    }
+
+    // 重置链表
+    list->head = NULL;
+    list->tail = NULL;
+    list->length = 0;
+}
+
+dlist_status_t dListInsertHead(dlist_t* list, void* data)
+{
+    if (NULL == list || NULL == data)
+    {
+        return DLIST_ERR_NULL;
+    }
+
+    dnode_t* new_node = alloc_node(list);
+    if (NULL == new_node)
+    {
+        return DLIST_ERR_FULL;
+    }
+
+    new_node->data = data;
+    new_node->next = list->head;
+    new_node->prev = NULL;
+
+    if (NULL != list->head)
+    {
+        list->head->prev = new_node;
+    }
+    else
+    {
+        list->tail = new_node;
+    }
+
+    list->head = new_node;
+    list->length++;
+
+    return DLIST_OK;
+}
+
+dlist_status_t dListInsertTail(dlist_t* list, void* data)
+{
+    if (NULL == list || NULL == data)
+    {
+        return DLIST_ERR_NULL;
+    }
+
+    dnode_t* new_node = alloc_node(list);
+    if (NULL == new_node)
+    {
+        return DLIST_ERR_FULL;
+    }
+
+    new_node->data = data;
+    new_node->prev = list->tail;
+    new_node->next = NULL;
+
+    if (NULL != list->tail)
+    {
+        list->tail->next = new_node;
+    }
+    else
+    {
+        list->head = new_node;
+    }
+
+    list->tail = new_node;
+    list->length++;
+
+    return DLIST_OK;
+}
+
+dlist_status_t dListInsertAt(dlist_t* list, uint32_t pos, void* data)
+{
+    if (NULL == list || NULL == data)
+    {
+        return DLIST_ERR_NULL;
+    }
+    if (pos > list->length)
+    {
+        return DLIST_ERR_POS;
+    }
+
+    if (0 == pos)
+    {
+        return dListInsertHead(list, data);
+    }
+    if (list->length == pos)
+    {
+        return dListInsertTail(list, data);
+    }
+
+    dnode_t* pos_node = dListFindByPosition(list, pos);
+    dnode_t* new_node = alloc_node(list);
+
+    if (NULL == new_node)
+    {
+        return DLIST_ERR_FULL;
+    }
+
+    // 插入节点
+    new_node->data = data;
+    new_node->prev = pos_node->prev;
+    new_node->next = pos_node;
+    pos_node->prev->next = new_node;
+    pos_node->prev = new_node;
+    list->length++;
 
     return DLIST_OK;
 }
