@@ -64,6 +64,19 @@ dlist_status_t dListInit(dlist_t* list)
     {
         return DLIST_ERR_NULL;
     }
+    uint32_t maxnodes = sizeof(list->nodePool) / sizeof(list->nodePool[0]);
 
+    for (uint32_t i = 0; i < maxnodes-1; i++)
+    {
+        list->nodePool[i].next = &list->nodePool[i+1];
+    }
+    list->nodePool[maxnodes-1].next = NULL;
+    list->freeList = &list->nodePool[0];
 
+    list->head = NULL;
+    list->tail = NULL;
+    list->length = 0;
+    list->maxNodes = maxnodes;
+
+    return DLIST_OK;
 }
