@@ -31,6 +31,8 @@ typedef struct dnode
     struct dnode *next;
     struct dnode *prev;
 }dnode_t;
+
+typedef int (*dlist_cb_t)(dnode_t *node, void *userData);
 //**************************** Interface Structs ****************************//
 //---------------------------------------------------------------------------//
 //******************************** Classes **********************************//
@@ -109,12 +111,12 @@ void dListReverse(dlist_t* list);
 /**
  * @brief  正向遍历
  */
-void dListForEachForward(dlist_t* list, void* userData);
+void dListForEachForward(dlist_t* list, dlist_cb_t cb, void* userData);
 
 /**
  * @brief  反向遍历
  */
-void dListForEachBackward(dlist_t* list, void* userData);
+void dListForEachBackward(dlist_t* list, dlist_cb_t cb, void* userData);
 //******************************** 函数声明 ***********************************//
 
 #endif //RTOS_PROJECT_DLIST_H
