@@ -51,7 +51,7 @@ static dnode_t* alloc_node(dlist_t* list)
  */
 static void free_node(dlist_t* list, dnode_t* node)
 {
-    if (NULL == list || NULL == list->freeList)
+    if (NULL == list || NULL == node)
     {
         return;
     }
@@ -205,4 +205,172 @@ dlist_status_t dListInsertAt(dlist_t* list, uint32_t pos, void* data)
     list->length++;
 
     return DLIST_OK;
+}
+
+dlist_status_t dListDeleteNode(dlist_t* list, dnode_t* node)
+{
+    if (NULL == list || NULL == node)
+    {
+        return DLIST_ERR_NULL;
+    }
+
+    if (NULL != node->prev)
+    {
+        node->prev->next = node->next;
+    }
+    else
+    {
+        list->head = node->next;
+    }
+
+    if (NULL != node->next)
+    {
+        node->next->prev = node->prev;
+    }
+    else
+    {
+        list->tail = node->prev;
+    }
+
+    free_node(list, node);
+    list->length--;
+
+    return DLIST_OK;
+}
+
+dlist_status_t dListDeleteByValue(dlist_t* list, void* target_data, dlist_cmp_cb_t cmp)
+{
+    if (NULL == list || NULL == target_data || NULL == cmp)
+    {
+        return DLIST_ERR_NULL;
+    }
+
+    dnode_t* node = dListFindByValue(list, target_data, cmp);
+    if (NULL == node)
+    {
+        return DLIST_ERR_NOT_FOUND;
+    }
+
+    return dListDeleteNode(list, node);
+}
+
+dlist_status_t dListDeleteAt(dlist_t* list, uint32_t pos)
+{
+    if (NULL == list)
+    {
+        return DLIST_ERR_NULL;
+    }
+    if (pos >= list->length)
+    {
+        return DLIST_ERR_POS;
+    }
+
+    dnode_t* node = dListFindByPosition(list, pos);
+    if (NULL == node)
+    {
+        return DLIST_ERR_POS;
+    }
+
+    return dListDeleteNode(list, node);
+}
+
+dnode_t* dListFindByValue(dlist_t* list, void* target_data, dlist_cmp_cb_t cmp)
+{
+    if (NULL == list || NULL == target_data || NULL == cmp)
+    {
+        return NULL;
+    }
+
+    dnode_t* p = list->head;
+    while (NULL != p)
+    {
+        if (cmp(p->data, target_data) == 0)
+        {
+            return p;
+        }
+        p = p->next;
+    }
+
+    return NULL;
+}
+
+dnode_t* dListFindByPosition(dlist_t* list, uint32_t pos)
+{
+    if (NULL == list || pos >= list->length)
+    {
+        return NULL;
+    }
+
+    dnode_t* p = list->head;
+    for (uint32_t i = 0; i < pos; i++)
+    {
+        p = p->next;
+    }
+
+    return p;
+}
+
+void dListReverse(dlist_t* list)
+{
+    if (list == NULL || list->length <= 1)
+    {
+        return;
+    }
+
+    dnode_t* p = list->head;
+    dnode_t* temp = NULL;
+
+    // 交换每个节点的前后指针
+    while (p != NULL)
+    {
+        temp = p->prev;
+        p->prev = p->next;
+        p->next = temp;
+        p = p->prev;
+    }
+
+    // 交换头尾指针
+    temp = list->head;
+    list->head = list->tail;
+    list->tail = temp;
+}
+
+void dListForEachForward(dlist_t* list, dlist_cb_t cb, void *userData)
+{
+    if (list == NULL || cb == NULL)
+    {
+        return;
+    }
+
+    dnode_t* p = list->head;
+    while (p != NULL)
+    {
+        // 调用用户传入的回调函数！
+        if (cb(p, userData) != 0)
+        {
+            break; // 可选：返回非0则停止遍历
+        }
+
+        p = p->next;
+    }
+}
+
+void dListForEachBackward(dlist_t* list, dlist_cb_t cb, void *userData)
+{
+    if (list == NULL || cb == NULL)
+    {
+        return;
+    }
+
+    dnode_t* p = list->tail;
+    while (p != NULL)
+    {
+        // 调用用户传入的回调函数！
+        if (cb(p, userData) != 0)
+        {
+            break;
+        }
+
+        p = p->prev;
+    }
 }

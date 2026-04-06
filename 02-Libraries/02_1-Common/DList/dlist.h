@@ -33,6 +33,7 @@ typedef struct dnode
 }dnode_t;
 
 typedef int (*dlist_cb_t)(dnode_t *node, void *userData);
+typedef int (*dlist_cmp_cb_t)(void *src_data, void *target_data);
 //**************************** Interface Structs ****************************//
 //---------------------------------------------------------------------------//
 //******************************** Classes **********************************//
@@ -86,7 +87,7 @@ dlist_status_t dListDeleteNode(dlist_t* list, dnode_t* node);
 /**
  * @brief  按值删除（第一个匹配项）
  */
-dlist_status_t dListDeleteByValue(dlist_t* list, void* data);
+dlist_status_t dListDeleteByValue(dlist_t* list, void* target_data, dlist_cmp_cb_t cmp);
 
 /**
  * @brief  按位置删除
@@ -96,7 +97,7 @@ dlist_status_t dListDeleteAt(dlist_t* list, uint32_t pos);
 /**
  * @brief  按值查找节点
  */
-dnode_t* dListFindByValue(dlist_t* list, void* data);
+dnode_t* dListFindByValue(dlist_t* list, void* target_data, dlist_cmp_cb_t cmp);
 
 /**
  * @brief  按位置查找节点
