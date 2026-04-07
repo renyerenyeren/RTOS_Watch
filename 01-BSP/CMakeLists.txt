@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 add_subdirectory(AHT21)
 # 引入 MPU6050 子模块
 add_subdirectory(MPU6050)
+# 引入 ST7789 子模块
+add_subdirectory(ST7789)
 
 # ------------------------------
 # 定义 BSP 接口库（用于聚合所有 BSP 组件）
@@ -16,6 +18,7 @@ add_library(bsp INTERFACE)
 target_link_libraries(bsp INTERFACE
         bsp_aht21
         bsp_mpu6050
+        bsp_st7789
 )
 
 # 暴露 BSP 公共头文件路径（如果 BSP 目录下有顶层的公共头文件）

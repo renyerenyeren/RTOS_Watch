@@ -30,6 +30,9 @@
 #include "log_task.h"
 #include "unpack_task.h"
 #include "../../03-Adapter/03_X-Debug/user_debug.h"
+#include "DWT_delay.h"
+#include "st7789_system_adaption.h"
+#include "image_rgb565.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -98,6 +101,7 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
   user_debug_init();
+  DWT_Delay_Init();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -118,17 +122,11 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of main_task */
-  // main_taskHandle = osThreadNew(MainTask, NULL, &main_task_attributes);
+  main_taskHandle = osThreadNew(MainTask, NULL, &main_task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  // BaseType_t ret = xTaskCreate(log_task, "log_task",                       // 创建日志输出任务
-  //                 128*6, NULL, 1, &g_log_task_handler);
-  // ERROR_CHECK(ret, pdPASS, "create log_task failed");
-  imu_system_adaption();                                                   // 创建mpu6050解包任务
-  BaseType_t ret = xTaskCreate(unpack_task, "unpack_task",                            // 创建mpu6050解包任务
-                  128*8, NULL, 24, &g_unpack_task_handler);
-  ERROR_CHECK(ret, pdPASS, "create log_task failed");
+  st7789_system_adaption();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -151,21 +149,13 @@ void temp_humi_callback(float* temp,float* humi)
 void MainTask(void *argument)
 {
   /* USER CODE BEGIN MainTask */
-  // system_adaption_inst();
-  // temp_humi_event_t event = {
-  //   // .temperature = , // 使用不安全
-  //   // .humidity = ,    // 使用不安全
-  //   .lifetime = 5,
-  //   // .timestap = ,
-  //   .type = TEMP_HUMI_EVENT_BOTH,
-  //   .pf_callback = temp_humi_callback
-  // };
+  st7789_driver_instance.pf_init(&st7789_driver_instance);
   /* Infinite loop */
   for(;;)
   {
-    // log_d("send event is start");
-    // vTaskDelay(pdMS_TO_TICKS(5));
-    // bsp_temp_humi_read(&event);
+    // st7789_driver_instance.pf_fill_color(&st7789_driver_instance, 0x07E0);
+    // st7789_driver_instance.pf_fill(&st7789_driver_instance, 0, 0, ST7789_WIDTH-1, ST7789_HEIGHT-1, MAGENTA);
+    st7789_driver_instance.pf_flush_color_buffer(&st7789_driver_instance, 0, 0, ST7789_WIDTH-1, ST7789_HEIGHT-1, image_rgb565);
   }
   /* USER CODE END MainTask */
 }

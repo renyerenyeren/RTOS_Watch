@@ -28,26 +28,6 @@
 //******************************** Defines **********************************//
 //---------------------------------------------------------------------------//
 //******************************** Macros ***********************************//
-#define MPU6050_WRITE_REG(p_mpu_driver, reg, p_data, len)  \
-    p_mpu_driver->p_i2c_driver_interface->pf_i2c_mem_write(\
-    p_mpu_driver->p_i2c_driver_interface->hi2c,            \
-    ((MPU_ADDR<<1) & 0xFF) | 0,                            \
-    reg,                                                   \
-    IIC_MEMADD_SIZE_8BIT,                                  \
-    p_data,                                                \
-    len,                                                   \
-    TIME_OUT_MS)
-
-#define MPU6050_READ_REG(p_mpu_driver, reg, p_data, len)   \
-    p_mpu_driver->p_i2c_driver_interface->pf_i2c_mem_read( \
-    p_mpu_driver->p_i2c_driver_interface->hi2c,            \
-    ((MPU_ADDR<<1) & 0xFF) | 1,                            \
-    reg,                                                   \
-    IIC_MEMADD_SIZE_8BIT,                                  \
-    p_data,                                                \
-    len,                                                   \
-    TIME_OUT_MS)
-
 #define MPU_DEBUG
 #ifdef  MPU_DEBUG
 #define LOG_DEBUG(x,...)  log_d(x, ##__VA_ARGS__)
@@ -63,6 +43,26 @@ if(NULL == x)                                          \
 LOG_ERROR(#x" is null ptr");                           \
 goto tag;}                                             \
 }while (0)
+
+#define MPU6050_WRITE_REG(p_mpu_driver, reg, p_data, len)  \
+p_mpu_driver->p_i2c_driver_interface->pf_i2c_mem_write(\
+p_mpu_driver->p_i2c_driver_interface->hi2c,            \
+((MPU_ADDR<<1) & 0xFF) | 0,                            \
+reg,                                                   \
+IIC_MEMADD_SIZE_8BIT,                                  \
+p_data,                                                \
+len,                                                   \
+TIME_OUT_MS)
+
+#define MPU6050_READ_REG(p_mpu_driver, reg, p_data, len)   \
+p_mpu_driver->p_i2c_driver_interface->pf_i2c_mem_read( \
+p_mpu_driver->p_i2c_driver_interface->hi2c,            \
+((MPU_ADDR<<1) & 0xFF) | 1,                            \
+reg,                                                   \
+IIC_MEMADD_SIZE_8BIT,                                  \
+p_data,                                                \
+len,                                                   \
+TIME_OUT_MS)
 //******************************** Macros ***********************************//
 //---------------------------------------------------------------------------//
 //******************************** Variables ********************************//
