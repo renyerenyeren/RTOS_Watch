@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 add_subdirectory(03_1-AHT21)
 # 引入 imu_adapter 子模块
 add_subdirectory(03_2-MPU6050)
+# 引入 st7789_adapter 子模块
+add_subdirectory(03_4-ST7789)
 # 引入 debug_adapter 子模块
 add_subdirectory(03_X-Debug)
 
@@ -19,6 +21,7 @@ add_library(adapter INTERFACE)
 target_link_libraries(adapter INTERFACE
         aht21_adapter
         imu_adapter
+        st7789_adapter
         debug_adapter
 )
 
