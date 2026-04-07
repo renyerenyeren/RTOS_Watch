@@ -118,7 +118,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of main_task */
-  // main_taskHandle = osThreadNew(MainTask, NULL, &main_task_attributes);
+  main_taskHandle = osThreadNew(MainTask, NULL, &main_task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
