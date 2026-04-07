@@ -4,8 +4,8 @@
 
 //******************************** Includes *********************************//
 #include "st7789_system_adaption.h"
-
 #include "DWT_delay.h"
+#include "main.h"
 #include "st7789_driver.h"
 #include "stm32f4xx_hal.h"
 //******************************** Includes *********************************//
@@ -41,58 +41,58 @@ bsp_st7789_driver_t st7789_driver_instance;
 //******************************** Variables ********************************//
 //---------------------------------------------------------------------------//
 //******************************** Functions ********************************//
-// static inline uint8_t spi_transmit_data( uint8_t *pData, uint32_t dataLength)
-// {
-//     HAL_SPI_Transmit(&hspi2, pData, dataLength, 0xFF);
-//     return 0;
-// }
-//
-// static inline uint8_t spi_transmit_data_dma( uint8_t *pData, uint32_t dataLength)
-// {
-//     HAL_SPI_Transmit_DMA(&hspi2, pData, dataLength);
-//     while (hspi2.hdmatx->State != HAL_DMA_STATE_READY);
-//
-//     return 0;
-// }
-//
-// static inline uint8_t gpio_write_reset_pin(uint8_t pinState)
-// {
-//     if(0 == pinState)
-//     {
-//         HAL_GPIO_WritePin(SPI_RESET_GPIO_Port, SPI_RESET_Pin, GPIO_PIN_RESET);
-//     }
-//     else
-//     {
-//         HAL_GPIO_WritePin(SPI_RESET_GPIO_Port, SPI_RESET_Pin, GPIO_PIN_SET);
-//     }
-//     return pinState;
-// }
-//
-// static inline uint8_t gpio_write_cs_pin(uint8_t pinState)
-// {
-//     if(0 == pinState)
-//     {
-//         HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET);
-//     }
-//     else
-//     {
-//         HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
-//     }
-//     return pinState;
-// }
-//
-// static inline uint8_t gpio_write_dc_pin(uint8_t pinState)
-// {
-//     if(0 == pinState)
-//     {
-//         HAL_GPIO_WritePin(SPI_DC_GPIO_Port, SPI_DC_Pin, GPIO_PIN_RESET);
-//     }
-//     else
-//     {
-//         HAL_GPIO_WritePin(SPI_DC_GPIO_Port, SPI_DC_Pin, GPIO_PIN_SET);
-//     }
-//     return pinState;
-// }
+static inline uint8_t spi_transmit_data(const uint8_t *pData, uint32_t dataLength)
+{
+    HAL_SPI_Transmit(&hspi2, pData, dataLength, 0xFF);
+    return 0;
+}
+
+static inline uint8_t spi_transmit_data_dma(const uint8_t *pData, uint32_t dataLength)
+{
+    HAL_SPI_Transmit_DMA(&hspi2, pData, dataLength);
+    while (hspi2.hdmatx->State != HAL_DMA_STATE_READY);
+
+    return 0;
+}
+
+static inline uint8_t gpio_write_reset_pin(uint8_t pinState)
+{
+    if(0 == pinState)
+    {
+        HAL_GPIO_WritePin(SPI_RESET_GPIO_Port, SPI_RESET_Pin, GPIO_PIN_RESET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(SPI_RESET_GPIO_Port, SPI_RESET_Pin, GPIO_PIN_SET);
+    }
+    return pinState;
+}
+
+static inline uint8_t gpio_write_cs_pin(uint8_t pinState)
+{
+    if(0 == pinState)
+    {
+        HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
+    }
+    return pinState;
+}
+
+static inline uint8_t gpio_write_dc_pin(uint8_t pinState)
+{
+    if(0 == pinState)
+    {
+        HAL_GPIO_WritePin(SPI_DC_GPIO_Port, SPI_DC_Pin, GPIO_PIN_RESET);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(SPI_DC_GPIO_Port, SPI_DC_Pin, GPIO_PIN_SET);
+    }
+    return pinState;
+}
 
 void st7789_system_adaption(void)
 {
