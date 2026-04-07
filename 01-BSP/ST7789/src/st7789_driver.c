@@ -130,67 +130,71 @@ static uint8_t st7789_init(void *instance)
 {
     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
 
-    // 1. 硬件复位序列
+    // 1. 硬件复位（可选，保持你的复位序列，但为了完全仿照树莓派也可只拉高）
     drv->p_timebase->pf_delay_no_os(10);
     drv->p_basic_operation->pf_write_reset_pin(0); // Reset Low
     drv->p_timebase->pf_delay_no_os(10);
     drv->p_basic_operation->pf_write_reset_pin(1); // Reset High
     drv->p_timebase->pf_delay_no_os(20);          // 等待复位完成
 
-    // 2. 退出睡眠模式
-    st7789_write_command(drv, ST7789_SLPOUT);
-    drv->p_timebase->pf_delay_no_os(120);         // 需要等待 120ms
+    // 2. 软件复位 (0x01)
+    st7789_write_command(drv, 0x01);
+    drv->p_timebase->pf_delay_no_os(120);         // 延时 120ms (树莓派用了100ms，这里给足)
 
-    // 3. 设置颜色模式为 16bit (RGB565)
+    // 3. 退出睡眠模式 (0x11)
+    st7789_write_command(drv, ST7789_SLPOUT);
+    drv->p_timebase->pf_delay_no_os(120);         // 延时 120ms (树莓派50ms，给足)
+
+    // 4. 设置颜色模式为 16bit RGB565 (0x3A, 0x55)
     st7789_write_command(drv, ST7789_COLMOD);
     st7789_write_simple_data(drv, ST7789_COLOR_MODE_16bit);
     drv->p_timebase->pf_delay_no_os(10);
 
-    // 4. 设置显示参数（Porch, Gate control, VCOM 等）
-    st7789_write_command(drv, 0xB2); // Porch control
-    {
-        uint8_t data[] = {0x0C, 0x0C, 0x00, 0x33, 0x33};
-        st7789_write_data(drv, data, sizeof(data));
-    }
-    st7789_write_command(drv, 0xB7); // Gate control
-    st7789_write_simple_data(drv, 0x35);
-    st7789_write_command(drv, 0xBB); // VCOM setting
-    st7789_write_simple_data(drv, 0x19);
-    st7789_write_command(drv, 0xC0); // LCM control
-    st7789_write_simple_data(drv, 0x2C);
-    st7789_write_command(drv, 0xC2); // VDV and VRH command enable
-    st7789_write_simple_data(drv, 0x01);
-    st7789_write_command(drv, 0xC3); // VRH set
-    st7789_write_simple_data(drv, 0x12);
-    st7789_write_command(drv, 0xC4); // VDV set
-    st7789_write_simple_data(drv, 0x20);
-    st7789_write_command(drv, 0xC6); // Frame rate control
-    st7789_write_simple_data(drv, 0x0F);
-    st7789_write_command(drv, 0xD0); // Power control
-    st7789_write_simple_data(drv, 0xA4);
-    st7789_write_simple_data(drv, 0xA1);
+    // 5. 设置内存访问控制 (0x36, 0x00) - 根据需要可改为你原来的方向设置
+    st7789_write_command(drv, ST7789_MADCTL);
+    st7789_write_simple_data(drv, 0x00);          // 树莓派用的0x00，可根据需要修改
+    drv->p_timebase->pf_delay_no_os(10);
 
-    // 5. 设置 Gamma 正负极性校正
-    st7789_write_command(drv, 0xE0); // Positive Voltage Gamma Control
+    // 6. 设置列地址范围 (CASET) 全屏
+    st7789_write_command(drv, ST7789_CASET);
     {
-        uint8_t data[] = {0xD0,0x04,0x0D,0x11,0x13,0x2B,0x3F,0x54,0x4C,0x18,0x0D,0x0B,0x1F,0x23};
-        st7789_write_data(drv, data, sizeof(data));
-    }
-    st7789_write_command(drv, 0xE1); // Negative Voltage Gamma Control
-    {
-        uint8_t data[] = {0xD0,0x04,0x0C,0x11,0x13,0x2C,0x3F,0x44,0x51,0x2F,0x1F,0x1F,0x20,0x23};
+        uint16_t x_start = 0;
+        uint16_t x_end = ST7789_WIDTH - 1;
+        uint8_t data[] = {
+            x_start >> 8, x_start & 0xFF,
+            x_end >> 8, x_end & 0xFF
+        };
         st7789_write_data(drv, data, sizeof(data));
     }
 
-    // 6. 开启显示
-    st7789_write_command(drv, ST7789_INVON); // Inversion on
-    st7789_write_command(drv, ST7789_NORON); // Normal display mode on
-    st7789_write_command(drv, ST7789_DISPON); // Display on
+    // 7. 设置行地址范围 (RASET) 全屏
+    st7789_write_command(drv, ST7789_RASET);
+    {
+        uint16_t y_start = 0;
+        uint16_t y_end = ST7789_HEIGHT - 1;
+        uint8_t data[] = {
+            y_start >> 8, y_start & 0xFF,
+            y_end >> 8, y_end & 0xFF
+        };
+        st7789_write_data(drv, data, sizeof(data));
+    }
+
+    // 8. 开启显示反转 (0x21) - 树莓派用了，可选
+    st7789_write_command(drv, ST7789_INVON);
+    drv->p_timebase->pf_delay_no_os(10);
+
+    // 9. 正常显示模式 (0x13)
+    st7789_write_command(drv, ST7789_NORON);
+    drv->p_timebase->pf_delay_no_os(10);
+
+    // 10. 开启显示 (0x29)
+    st7789_write_command(drv, ST7789_DISPON);
     drv->p_timebase->pf_delay_no_os(50);
 
-    // 7. 设置默认扫描方向并清屏
-    drv->pf_set_direction(instance, 0);
-    drv->pf_fill_color(instance, 0x0000);   // 清屏黑色
+    // 11. 清屏为黑色 (注意你的 pf_fill_color 可能使用了 Y_SHIFT，请确保 X_SHIFT/Y_SHIFT 为 0)
+    // 如果你保留了 Y_SHIFT，建议先设为0
+    drv->pf_fill_color(instance, 0x0000);   // 黑色
+
     return 0;
 }
 
@@ -261,21 +265,24 @@ static uint8_t st7789_fill_color(void *instance, uint16_t color)
     // 1. 设置窗口为全屏
     drv->pf_set_addr_window(instance, 0, 0, ST7789_WIDTH - 1, ST7789_HEIGHT - 1);
 
+    // 2. 交换字节序：ST7789 要求先发送高字节，而小端MCU内存中低字节在前，故提前交换
+    uint16_t swapped_color = (color >> 8) | (color << 8);
+
     uint32_t total_pixels = ST7789_WIDTH * ST7789_HEIGHT;
     uint32_t pixels_sent = 0;
     uint32_t buf_pixels = sizeof(disp_buf) / sizeof(uint16_t);
     uint16_t i;
 
-    // 2. 使用指定颜色填充缓冲区
+    // 3. 使用交换后的颜色填充缓冲区
     for (i = 0; i < buf_pixels; i++)
-        disp_buf[i] = color;
+        disp_buf[i] = swapped_color;
 
-    // 3. 循环发送缓冲区数据直到填满屏幕
+    // 4. 循环发送缓冲区数据直到填满屏幕
     while (pixels_sent < total_pixels)
     {
         uint32_t send = total_pixels - pixels_sent;
         if (send > buf_pixels) send = buf_pixels;
-        // 发送数据，注意长度乘以2因为每个像素是2字节
+        // 发送数据（按字节流，此时缓冲区中已是高字节在前内存布局）
         st7789_write_data(drv, (uint8_t*)disp_buf, send * 2);
         pixels_sent += send;
     }
@@ -317,34 +324,60 @@ static uint8_t st7789_draw_pixel(void *instance, uint16_t x, uint16_t y, uint16_
  * @param color RGB565 格式的颜色值
  * @return 0: 成功, 1: 失败（坐标越界）
  */
+// static uint8_t st7789_fill(void *instance, uint16_t xSta, uint16_t ySta, uint16_t xEnd, uint16_t yEnd, uint16_t color)
+// {
+//     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
+//
+//     // 1. 检查坐标是否越界
+//     if (xEnd >= ST7789_WIDTH || yEnd >= ST7789_HEIGHT)
+//         return 1;
+//
+//     // 2. 设置填充区域的窗口
+//     drv->pf_set_addr_window(instance, xSta, ySta, xEnd, yEnd);
+//
+//     uint32_t width  = xEnd - xSta + 1;
+//     uint32_t height = yEnd - ySta + 1;
+//     uint32_t total  = width * height;
+//     uint32_t sent = 0;
+//
+//     // 3. 准备一个行缓冲区，填充为指定颜色
+//     uint16_t line_buf[width];
+//     for (uint32_t i = 0; i < width; i++)
+//         line_buf[i] = color;
+//
+//     // 4. 逐行发送数据
+//     while (sent < total)
+//     {
+//         uint32_t rows = total - sent;
+//         if (rows > 1) rows = 1;          // 每次发送一行
+//         st7789_write_data(drv, (uint8_t*)line_buf, width * 2);
+//         sent += width;
+//     }
+//     return 0;
+// }
 static uint8_t st7789_fill(void *instance, uint16_t xSta, uint16_t ySta, uint16_t xEnd, uint16_t yEnd, uint16_t color)
 {
     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
 
-    // 1. 检查坐标是否越界
     if (xEnd >= ST7789_WIDTH || yEnd >= ST7789_HEIGHT)
         return 1;
 
-    // 2. 设置填充区域的窗口
     drv->pf_set_addr_window(instance, xSta, ySta, xEnd, yEnd);
 
     uint32_t width  = xEnd - xSta + 1;
     uint32_t height = yEnd - ySta + 1;
-    uint32_t total  = width * height;
-    uint32_t sent = 0;
 
-    // 3. 准备一个行缓冲区，填充为指定颜色
-    uint16_t line_buf[width];
-    for (uint32_t i = 0; i < width; i++)
-        line_buf[i] = color;
+    // 交换字节序：ST7789要求高字节在前
+    uint16_t swapped = (color >> 8) | (color << 8);
 
-    // 4. 逐行发送数据
-    while (sent < total)
-    {
-        uint32_t rows = total - sent;
-        if (rows > 1) rows = 1;          // 每次发送一行
-        st7789_write_data(drv, (uint8_t*)line_buf, width * 2);
-        sent += width;
+    // 用交换后的颜色填充全局缓冲区的前 width 个像素
+    for (uint32_t i = 0; i < width; i++) {
+        disp_buf[i] = swapped;
+    }
+
+    // 逐行发送：每行都是 width 个像素（每个像素2字节）
+    for (uint32_t row = 0; row < height; row++) {
+        st7789_write_data(drv, (uint8_t*)disp_buf, width * 2);
     }
     return 0;
 }
@@ -359,21 +392,62 @@ static uint8_t st7789_fill(void *instance, uint16_t xSta, uint16_t ySta, uint16_
  * @param color_buf 指向像素数据缓冲区的指针 (RGB565 格式)
  * @return 0: 成功, 1: 失败
  */
+// static uint8_t st7789_flush_color_buffer(void *instance, uint16_t x1, uint16_t y1,
+//                                          uint16_t x2, uint16_t y2, const uint16_t *color_buf)
+// {
+//     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
+//
+//     // 1. 计算区域宽高
+//     uint32_t w = x2 - x1 + 1;
+//     uint32_t h = y2 - y1 + 1;
+//     uint32_t num_pixels = w * h;
+//
+//     // 交换每个像素的字节序（小端 -> ST7789 大端）
+//     for (uint32_t i = 0; i < num_pixels; i++) {
+//         uint16_t pixel = color_buf[i];
+//         disp_buf[i] = (pixel >> 8) | (pixel << 8);
+//     }
+//
+//     // 2. 设置目标区域窗口
+//     drv->pf_set_addr_window(instance, x1, y1, x2, y2);
+//
+//     // 3. 直接发送颜色缓冲区数据
+//     // 注意 color_buf 是 16bit 像素数组，需转为字节流发送，长度为 宽*高*2
+//     st7789_write_data(drv, (const uint8_t*)disp_buf, w * h * 2);
+//     return 0;
+// }
 static uint8_t st7789_flush_color_buffer(void *instance, uint16_t x1, uint16_t y1,
                                          uint16_t x2, uint16_t y2, const uint16_t *color_buf)
 {
     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
 
-    // 1. 计算区域宽高
     uint32_t w = x2 - x1 + 1;
     uint32_t h = y2 - y1 + 1;
+    uint32_t total_pixels = w * h;
+    uint32_t pixels_done = 0;
 
-    // 2. 设置目标区域窗口
+    // 每次最多处理缓冲区大小的像素（240*40=9600）
+    uint32_t buf_pixels = sizeof(disp_buf) / sizeof(disp_buf[0]);
+
+    // 设置窗口
     drv->pf_set_addr_window(instance, x1, y1, x2, y2);
 
-    // 3. 直接发送颜色缓冲区数据
-    // 注意 color_buf 是 16bit 像素数组，需转为字节流发送，长度为 宽*高*2
-    st7789_write_data(drv, (const uint8_t*)color_buf, w * h * 2);
+    while (pixels_done < total_pixels) {
+        uint32_t send = total_pixels - pixels_done;
+        if (send > buf_pixels)
+            send = buf_pixels;
+
+        // 转换字节序（只转换本次发送的部分）
+        for (uint32_t i = 0; i < send; i++) {
+            uint16_t c = color_buf[pixels_done + i];
+            disp_buf[i] = (c >> 8) | (c << 8);
+        }
+
+        // 发送
+        st7789_write_data(drv, (const uint8_t*)disp_buf, send * 2);
+        pixels_done += send;
+    }
+
     return 0;
 }
 

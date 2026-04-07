@@ -32,6 +32,7 @@
 #include "../../03-Adapter/03_X-Debug/user_debug.h"
 #include "DWT_delay.h"
 #include "st7789_system_adaption.h"
+#include "image_rgb565.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -152,7 +153,9 @@ void MainTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    st7789_driver_instance.pf_fill_color(&st7789_driver_instance, 0x001F);
+    // st7789_driver_instance.pf_fill_color(&st7789_driver_instance, 0x07E0);
+    // st7789_driver_instance.pf_fill(&st7789_driver_instance, 0, 0, ST7789_WIDTH-1, ST7789_HEIGHT-1, MAGENTA);
+    st7789_driver_instance.pf_flush_color_buffer(&st7789_driver_instance, 0, 0, ST7789_WIDTH-1, ST7789_HEIGHT-1, image_rgb565);
   }
   /* USER CODE END MainTask */
 }
