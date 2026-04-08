@@ -130,7 +130,7 @@ static uint8_t st7789_init(void *instance)
 {
     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
 
-    // 1. 硬件复位（可选，保持你的复位序列，但为了完全仿照树莓派也可只拉高）
+    // 1. 硬件复位
     drv->p_timebase->pf_delay_no_os(10);
     drv->p_basic_operation->pf_write_reset_pin(0); // Reset Low
     drv->p_timebase->pf_delay_no_os(10);
@@ -139,11 +139,11 @@ static uint8_t st7789_init(void *instance)
 
     // 2. 软件复位 (0x01)
     st7789_write_command(drv, 0x01);
-    drv->p_timebase->pf_delay_no_os(120);         // 延时 120ms (树莓派用了100ms，这里给足)
+    drv->p_timebase->pf_delay_no_os(120);         // 延时 120ms
 
     // 3. 退出睡眠模式 (0x11)
     st7789_write_command(drv, ST7789_SLPOUT);
-    drv->p_timebase->pf_delay_no_os(120);         // 延时 120ms (树莓派50ms，给足)
+    drv->p_timebase->pf_delay_no_os(120);         // 延时 120ms
 
     // 4. 设置颜色模式为 16bit RGB565 (0x3A, 0x55)
     st7789_write_command(drv, ST7789_COLMOD);
@@ -152,7 +152,7 @@ static uint8_t st7789_init(void *instance)
 
     // 5. 设置内存访问控制 (0x36, 0x00) - 根据需要可改为你原来的方向设置
     st7789_write_command(drv, ST7789_MADCTL);
-    st7789_write_simple_data(drv, 0x00);          // 树莓派用的0x00，可根据需要修改
+    st7789_write_simple_data(drv, 0x00);
     drv->p_timebase->pf_delay_no_os(10);
 
     // 6. 设置列地址范围 (CASET) 全屏
@@ -179,7 +179,7 @@ static uint8_t st7789_init(void *instance)
         st7789_write_data(drv, data, sizeof(data));
     }
 
-    // 8. 开启显示反转 (0x21) - 树莓派用了，可选
+    // 8. 开启显示反转 (0x21)
     st7789_write_command(drv, ST7789_INVON);
     drv->p_timebase->pf_delay_no_os(10);
 
@@ -324,37 +324,6 @@ static uint8_t st7789_draw_pixel(void *instance, uint16_t x, uint16_t y, uint16_
  * @param color RGB565 格式的颜色值
  * @return 0: 成功, 1: 失败（坐标越界）
  */
-// static uint8_t st7789_fill(void *instance, uint16_t xSta, uint16_t ySta, uint16_t xEnd, uint16_t yEnd, uint16_t color)
-// {
-//     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
-//
-//     // 1. 检查坐标是否越界
-//     if (xEnd >= ST7789_WIDTH || yEnd >= ST7789_HEIGHT)
-//         return 1;
-//
-//     // 2. 设置填充区域的窗口
-//     drv->pf_set_addr_window(instance, xSta, ySta, xEnd, yEnd);
-//
-//     uint32_t width  = xEnd - xSta + 1;
-//     uint32_t height = yEnd - ySta + 1;
-//     uint32_t total  = width * height;
-//     uint32_t sent = 0;
-//
-//     // 3. 准备一个行缓冲区，填充为指定颜色
-//     uint16_t line_buf[width];
-//     for (uint32_t i = 0; i < width; i++)
-//         line_buf[i] = color;
-//
-//     // 4. 逐行发送数据
-//     while (sent < total)
-//     {
-//         uint32_t rows = total - sent;
-//         if (rows > 1) rows = 1;          // 每次发送一行
-//         st7789_write_data(drv, (uint8_t*)line_buf, width * 2);
-//         sent += width;
-//     }
-//     return 0;
-// }
 static uint8_t st7789_fill(void *instance, uint16_t xSta, uint16_t ySta, uint16_t xEnd, uint16_t yEnd, uint16_t color)
 {
     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
@@ -392,30 +361,6 @@ static uint8_t st7789_fill(void *instance, uint16_t xSta, uint16_t ySta, uint16_
  * @param color_buf 指向像素数据缓冲区的指针 (RGB565 格式)
  * @return 0: 成功, 1: 失败
  */
-// static uint8_t st7789_flush_color_buffer(void *instance, uint16_t x1, uint16_t y1,
-//                                          uint16_t x2, uint16_t y2, const uint16_t *color_buf)
-// {
-//     bsp_st7789_driver_t *drv = (bsp_st7789_driver_t *)instance;
-//
-//     // 1. 计算区域宽高
-//     uint32_t w = x2 - x1 + 1;
-//     uint32_t h = y2 - y1 + 1;
-//     uint32_t num_pixels = w * h;
-//
-//     // 交换每个像素的字节序（小端 -> ST7789 大端）
-//     for (uint32_t i = 0; i < num_pixels; i++) {
-//         uint16_t pixel = color_buf[i];
-//         disp_buf[i] = (pixel >> 8) | (pixel << 8);
-//     }
-//
-//     // 2. 设置目标区域窗口
-//     drv->pf_set_addr_window(instance, x1, y1, x2, y2);
-//
-//     // 3. 直接发送颜色缓冲区数据
-//     // 注意 color_buf 是 16bit 像素数组，需转为字节流发送，长度为 宽*高*2
-//     st7789_write_data(drv, (const uint8_t*)disp_buf, w * h * 2);
-//     return 0;
-// }
 static uint8_t st7789_flush_color_buffer(void *instance, uint16_t x1, uint16_t y1,
                                          uint16_t x2, uint16_t y2, const uint16_t *color_buf)
 {
